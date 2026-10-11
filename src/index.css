@@ -53,10 +53,38 @@ body {
     overflow: visible !important;
   }
 
+  .screen-report-cards {
+    display: none !important;
+  }
+
+  .screen-report-table {
+    display: block !important;
+    overflow: visible !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
   .print-report table {
     min-width: 0 !important;
     width: 100% !important;
+    table-layout: fixed !important;
     font-size: 8pt;
+  }
+
+  .print-report th,
+  .print-report td {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+  }
+
+  .print-report thead {
+    display: table-header-group;
+  }
+
+  .print-report tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   @page {

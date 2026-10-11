@@ -219,45 +219,45 @@ export default function DetailPage({ students, onLoadReport }) {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white/90 shadow-sm">
-            <table className="w-full min-w-[1040px] text-left text-sm">
+          <div className="screen-report-table hidden overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-sm md:block">
+            <table className="w-full table-fixed text-left text-xs sm:text-sm">
               <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
                 <tr>
-                  <th className="px-3 py-3">No.</th>
-                  <th className="px-3 py-3">NIS / Nama Siswa</th>
-                  <th className="px-3 py-3">Kelas</th>
-                  <th className="px-3 py-3">Pertemuan</th>
-                  <th className="px-3 py-3">Hadir</th>
-                  <th className="px-3 py-3">Izin</th>
-                  <th className="px-3 py-3">Sakit</th>
-                  <th className="px-3 py-3">Alpa</th>
-                  <th className="px-3 py-3">Izin Kelas Lain</th>
-                  <th className="px-3 py-3">Rata-rata Nilai</th>
-                  <th className="min-w-56 px-3 py-3">Nilai per Mapel</th>
+                  <th className="w-[4%] break-words px-1 py-2 sm:px-2">No.</th>
+                  <th className="w-[17%] break-words px-1 py-2 sm:px-2">NIS / Nama Siswa</th>
+                  <th className="w-[9%] break-words px-1 py-2 sm:px-2">Kelas</th>
+                  <th className="w-[7%] break-words px-1 py-2 sm:px-2">Pertemuan</th>
+                  <th className="w-[5%] break-words px-1 py-2 sm:px-2">Hadir</th>
+                  <th className="w-[5%] break-words px-1 py-2 sm:px-2">Izin</th>
+                  <th className="w-[5%] break-words px-1 py-2 sm:px-2">Sakit</th>
+                  <th className="w-[5%] break-words px-1 py-2 sm:px-2">Alpa</th>
+                  <th className="w-[9%] break-words px-1 py-2 sm:px-2">Izin Kelas Lain</th>
+                  <th className="w-[10%] break-words px-1 py-2 sm:px-2">Rata-rata Nilai</th>
+                  <th className="w-[24%] break-words px-1 py-2 sm:px-2">Nilai per Mapel</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {report.map((student, index) => (
                   <tr key={`${student.nis}-${student.className}`} className="align-top text-slate-700">
-                    <td className="px-3 py-3">{index + 1}</td>
-                    <td className="px-3 py-3">
+                    <td className="break-words px-1 py-2 sm:px-2 sm:py-3">{index + 1}</td>
+                    <td className="break-words px-1 py-2 sm:px-2 sm:py-3">
                       <span className="font-semibold">{student.name}</span>
                       <span className="mt-0.5 block text-xs text-slate-400">{student.nis}</span>
                     </td>
-                    <td className="px-3 py-3">{student.className}</td>
-                    <td className="px-3 py-3">{student.sessions}</td>
-                    <td className="px-3 py-3">{student.attendance.Hadir}</td>
-                    <td className="px-3 py-3">{student.attendance.Izin}</td>
-                    <td className="px-3 py-3">{student.attendance.Sakit}</td>
-                    <td className="px-3 py-3">{student.attendance.Alpa}</td>
-                    <td className="px-3 py-3">{student.attendance['Izin kelas lain']}</td>
-                    <td className="px-3 py-3 font-semibold">
+                    <td className="break-words px-1 py-2 sm:px-2 sm:py-3">{student.className}</td>
+                    <td className="break-words px-1 py-2 sm:px-2 sm:py-3">{student.sessions}</td>
+                    <td className="break-words px-1 py-2 sm:px-2 sm:py-3">{student.attendance.Hadir}</td>
+                    <td className="break-words px-1 py-2 sm:px-2 sm:py-3">{student.attendance.Izin}</td>
+                    <td className="break-words px-1 py-2 sm:px-2 sm:py-3">{student.attendance.Sakit}</td>
+                    <td className="break-words px-1 py-2 sm:px-2 sm:py-3">{student.attendance.Alpa}</td>
+                    <td className="break-words px-1 py-2 sm:px-2 sm:py-3">{student.attendance['Izin kelas lain']}</td>
+                    <td className="break-words px-1 py-2 font-semibold sm:px-2 sm:py-3">
                       {student.averageGrade === null ? '—' : student.averageGrade.toFixed(2)}
                     </td>
-                    <td className="px-3 py-3">
+                    <td className="break-words px-1 py-2 sm:px-2 sm:py-3">
                       {student.subjects.length > 0
                         ? student.subjects.map((subject) => (
-                          <span key={subject.subject} className="mb-1 block">
+                          <span key={subject.subject} className="mb-1 block break-words">
                             {subject.subject}: {subject.averageGrade.toFixed(2)}
                           </span>
                         ))
@@ -267,13 +267,57 @@ export default function DetailPage({ students, onLoadReport }) {
                 ))}
                 {report.length === 0 && (
                   <tr>
-                    <td colSpan="11" className="px-4 py-10 text-center text-slate-500">
+                    <td colSpan="11" className="px-2 py-10 text-center text-slate-500">
                       Belum ada data presensi untuk bulan dan kelas ini.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
+          </div>
+          <div className="screen-report-cards space-y-3 md:hidden">
+            {report.map((student, index) => (
+              <article
+                key={`${student.nis}-${student.className}-card`}
+                className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm"
+              >
+                <div className="mb-3 flex items-start gap-3 border-b border-slate-100 pb-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <h4 className="break-words font-bold text-slate-800">{student.name}</h4>
+                    <p className="break-words text-xs text-slate-500">NIS {student.nis} · Kelas {student.className}</p>
+                  </div>
+                </div>
+                <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                  <div><dt className="text-xs text-slate-500">Pertemuan</dt><dd className="font-semibold text-slate-800">{student.sessions}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Rata-rata Nilai</dt><dd className="font-semibold text-slate-800">{student.averageGrade === null ? '—' : student.averageGrade.toFixed(2)}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Hadir</dt><dd className="font-semibold text-slate-800">{student.attendance.Hadir}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Izin</dt><dd className="font-semibold text-slate-800">{student.attendance.Izin}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Sakit</dt><dd className="font-semibold text-slate-800">{student.attendance.Sakit}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Alpa</dt><dd className="font-semibold text-slate-800">{student.attendance.Alpa}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Izin kelas lain</dt><dd className="font-semibold text-slate-800">{student.attendance['Izin kelas lain']}</dd></div>
+                  <div className="col-span-2">
+                    <dt className="text-xs text-slate-500">Nilai per Mapel</dt>
+                    <dd className="mt-1 break-words text-slate-800">
+                      {student.subjects.length > 0
+                        ? student.subjects.map((subject) => (
+                          <span key={subject.subject} className="mr-2 inline-block">
+                            {subject.subject}: {subject.averageGrade.toFixed(2)}
+                          </span>
+                        ))
+                        : 'Belum ada nilai'}
+                    </dd>
+                  </div>
+                </dl>
+              </article>
+            ))}
+            {report.length === 0 && (
+              <p className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+                Belum ada data presensi untuk bulan dan kelas ini.
+              </p>
+            )}
           </div>
           {exportMessage && (
             <p role="status" className="mt-3 text-sm text-emerald-700 print:hidden">{exportMessage}</p>
