@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@layer utilities {
+  /* Efek Glassmorphism kustom */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+}
+
+body {
+  background: linear-gradient(135deg, #e2e8f0 0%, #ffffff 100%);
+  color: #1e293b;
+  min-height: 100vh;
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-report,
+  .print-report * {
+    visibility: visible;
+  }
+
+  .print-report {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+}
