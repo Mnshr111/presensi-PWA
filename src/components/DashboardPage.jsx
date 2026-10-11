@@ -360,7 +360,7 @@ export default function DashboardPage({ userId, students, onSaveMeeting, student
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <div className="hidden overflow-x-auto rounded-xl border border-slate-200 bg-white md:block">
             <table className="w-full min-w-[920px] text-left text-sm">
               <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
                 <tr>
@@ -432,6 +432,76 @@ export default function DashboardPage({ userId, students, onSaveMeeting, student
                 )}
               </tbody>
             </table>
+          </div>
+          <div className="space-y-3 md:hidden">
+            {participants.map((student, index) => {
+              const record = attendanceById[student.id] || {};
+              const isAdditional = additionalStudentIds.includes(student.id);
+              return (
+                <article key={student.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="mb-4 flex items-start gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="break-words text-sm font-bold text-slate-800">{student.name}</h4>
+                      <p className="mt-1 break-words text-xs text-slate-500">
+                        NIS {student.nis} · Kelas {student.className}
+                      </p>
+                    </div>
+                    {isAdditional && (
+                      <button
+                        type="button"
+                        onClick={() => removeAdditionalStudent(student.id)}
+                        className="shrink-0 text-xs font-semibold text-rose-600 hover:underline"
+                      >
+                        Hapus
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <label htmlFor={`attendance-mobile-${student.id}`} className={labelClass}>Kehadiran</label>
+                      <select
+                        id={`attendance-mobile-${student.id}`}
+                        value={record.attendance || 'Hadir'}
+                        onChange={(event) => updateAttendance(student.id, 'attendance', event.target.value)}
+                        className={inputClass}
+                      >
+                        {attendanceOptions.map((status) => <option key={status} value={status}>{status}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor={`grade-mobile-${student.id}`} className={labelClass}>Nilai (0–100)</label>
+                      <input
+                        id={`grade-mobile-${student.id}`}
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={record.grade ?? ''}
+                        onChange={(event) => updateAttendance(student.id, 'grade', event.target.value)}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor={`note-mobile-${student.id}`} className={labelClass}>Catatan</label>
+                      <input
+                        id={`note-mobile-${student.id}`}
+                        value={record.note || ''}
+                        onChange={(event) => updateAttendance(student.id, 'note', event.target.value)}
+                        className={inputClass}
+                        placeholder="Catatan siswa"
+                      />
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+            {participants.length === 0 && (
+              <p className="rounded-xl border border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-500">
+                {meeting.className ? 'Belum ada siswa di kelas ini.' : 'Pilih kelas untuk memuat daftar siswa.'}
+              </p>
+            )}
           </div>
 
           {message && <p role="status" className="mt-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{message}</p>}
