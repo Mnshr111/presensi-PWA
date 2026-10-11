@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 function currentMonth() {
   const now = new Date();
@@ -51,12 +51,36 @@ function downloadReportCsv(month, rows) {
   URL.revokeObjectURL(url);
 }
 
+function downloadPdf(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
 export default function DetailPage({ students, onLoadReport }) {
+  const pdfToolsPromise = useRef(null);
+  const pdfToolsError = useRef(null);
   const [month, setMonth] = useState(currentMonth);
   const [className, setClassName] = useState('');
   const [report, setReport] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [exportMessage, setExportMessage] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    pdfToolsPromise.current = import('../lib/reportPdf').catch((loadError) => {
+      if (active) pdfToolsError.current = loadError;
+      return null;
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const classOptions = useMemo(
     () => [...new Set(students.map((student) => student.className).filter(Boolean))].sort(),
@@ -81,6 +105,38 @@ export default function DetailPage({ students, onLoadReport }) {
   const monthLabel = month
     ? new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date(`${month}-01T00:00:00`))
     : '';
+
+  const exportPdf = async () => {
+    if (!report || report.length === 0) return;
+    setError('');
+    setExportMessage('');
+    setIsExportingPdf(true);
+
+    try {
+      const pdfTools = await pdfToolsPromise.current;
+      if (!pdfTools) {
+        throw new Error(pdfToolsError.current instanceof Error
+          ? pdfToolsError.current.message
+          : 'Fitur pembuatan PDF gagal dimuat. Muat ulang halaman lalu coba lagi.');
+      }
+      const blob = pdfTools.createReportPdf(month, monthLabel, className, report);
+      const filename = `rapor-bulanan-${month}.pdf`;
+      const file = new File([blob], filename, { type: 'application/pdf' });
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: `Rapor Bulanan ${monthLabel}` });
+        setExportMessage('PDF siap dibagikan atau disimpan dari menu berbagi iPhone.');
+      } else {
+        downloadPdf(blob, filename);
+        setExportMessage('PDF berhasil dibuat. Buka file unduhan untuk menyimpan atau mencetak.');
+      }
+    } catch (exportError) {
+      if (exportError instanceof Error && exportError.name === 'AbortError') return;
+      setError(exportError instanceof Error ? exportError.message : 'Gagal membuat PDF rapor.');
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
 
   return (
     <section>
@@ -136,6 +192,14 @@ export default function DetailPage({ students, onLoadReport }) {
               </p>
             </div>
             <div className="flex gap-2 print:hidden">
+              <button
+                type="button"
+                onClick={exportPdf}
+                disabled={report.length === 0 || isExportingPdf}
+                className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+              >
+                {isExportingPdf ? 'Membuat PDF...' : 'PDF / Simpan di iPhone'}
+              </button>
               <button
                 type="button"
                 onClick={() => downloadReportCsv(month, report)}
@@ -211,6 +275,9 @@ export default function DetailPage({ students, onLoadReport }) {
               </tbody>
             </table>
           </div>
+          {exportMessage && (
+            <p role="status" className="mt-3 text-sm text-emerald-700 print:hidden">{exportMessage}</p>
+          )}
           <p className="mt-3 text-xs text-slate-400 print:hidden">
             Rata-rata dihitung dari nilai yang diisi pada pertemuan yang tersimpan di Spreadsheet.
           </p>
