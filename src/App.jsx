@@ -109,6 +109,48 @@ export default function App() {
     return true;
   };
 
+  const updateStudent = async (studentId, student) => {
+    if (siswaList.some((item) => item.id !== studentId && item.nis === student.nis)) {
+      return false;
+    }
+
+    const { data, error } = await supabase
+      .from('students')
+      .update({
+        nis: student.nis,
+        name: student.name,
+        class_name: student.className,
+        school: student.school,
+      })
+      .eq('id', studentId)
+      .select('id, nis, name, class_name, school, status, time')
+      .single();
+
+    if (error?.code === '23505') return false;
+    if (error) throw new Error(error.message);
+
+    setSiswaList((previous) =>
+      previous
+        .map((item) => (item.id === studentId ? mapStudent(data) : item))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    );
+    return true;
+  };
+
+  const deleteStudent = async (studentId) => {
+    const { data, error } = await supabase
+      .from('students')
+      .delete()
+      .eq('id', studentId)
+      .select('id')
+      .maybeSingle();
+
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error('Data siswa tidak ditemukan atau sudah dihapus.');
+
+    setSiswaList((previous) => previous.filter((item) => item.id !== studentId));
+  };
+
   const importStudents = async (students) => {
     const knownNis = new Set(siswaList.map((student) => student.nis));
     const duplicateNis = [];
@@ -226,6 +268,8 @@ export default function App() {
             students={siswaList}
             isLoading={studentsLoading}
             onAddStudent={addStudent}
+            onUpdateStudent={updateStudent}
+            onDeleteStudent={deleteStudent}
             onImportStudents={importStudents}
           />
         )}
@@ -245,8 +289,10 @@ export default function App() {
               <p className="text-xs font-medium text-cyan-800">Portal Presensi</p>
               <h1 className="font-bold text-base">Siswa PWA</h1>
             </div>
-            <div className="w-9 h-9 rounded-full bg-white/70 flex items-center justify-center font-bold shadow-sm">
-              👨‍🏫
+            
+            {/* Bagian yang diubah: Emoji diganti teks "SG" berwarna biru bergaya ikon profil minimalis ala iPhone */}
+            <div className="w-10 h-10 rounded-full bg-white/90 border border-white shadow-sm flex items-center justify-center font-bold text-sm text-blue-600 tracking-tight">
+              SG
             </div>
           </header>
 

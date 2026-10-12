@@ -1,28 +1,37 @@
+import { Home, Users, BarChart3, UserCog } from 'lucide-react';
+
 export default function MobileNav({ currentPage, setCurrentPage }) {
   const menuItems = [
-    { key: 'home', icon: '🏠' },
-    { key: 'students', icon: '🎓' },
-    { key: 'detail', icon: '📊' },
-    { key: 'login', icon: '👤' },
+    { key: 'home', icon: Home, label: 'Dashboard' },
+    { key: 'students', icon: Users, label: 'Siswa' },
+    { key: 'detail', icon: BarChart3, label: 'Laporan' },
+    { key: 'login', icon: UserCog, label: 'Akun' },
   ];
 
   return (
-    <nav aria-label="Navigasi Mobile" className="lg:hidden absolute bottom-4 left-4 right-4 glass-card p-2 rounded-3xl flex justify-around items-center z-30 shadow-xl border border-white/80 bg-white/90">
-      {menuItems.map((item) => (
-        <button
-          key={item.key}
-          onClick={() => setCurrentPage(item.key)}
-          aria-label={item.key === 'students' ? 'Data Siswa' : item.key === 'home' ? 'Dashboard Utama' : item.key === 'detail' ? 'Rekap dan Laporan' : 'Pengaturan Akun'}
-          title={item.key === 'students' ? 'Data Siswa' : undefined}
-          className={`p-3 rounded-2xl text-white transition ${
-            currentPage === item.key
-              ? 'bg-black shadow-md shadow-slate-900/20 ring-2 ring-cyan-200'
-              : 'bg-slate-900 hover:bg-slate-700'
-          }`}
-        >
-          <span className="grayscale brightness-0 invert">{item.icon}</span>
-        </button>
-      ))}
+    <nav 
+      aria-label="Navigasi Mobile" 
+      className="lg:hidden fixed bottom-6 left-6 right-6 backdrop-blur-xl bg-white/75 p-2 rounded-full flex justify-around items-center z-30 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/60"
+    >
+      {menuItems.map((item) => {
+        const isActive = currentPage === item.key;
+        const IconComponent = item.icon;
+
+        return (
+          <button
+            key={item.key}
+            onClick={() => setCurrentPage(item.key)}
+            aria-label={item.label}
+            className={`relative flex items-center justify-center py-3 px-5 rounded-full transition-all duration-300 ease-out ${
+              isActive
+                ? 'bg-black text-white shadow-md shadow-black/20 scale-105'
+                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'
+            }`}
+          >
+            <IconComponent size={20} strokeWidth={isActive ? 2.5 : 2} />
+          </button>
+        );
+      })}
     </nav>
   );
 }
