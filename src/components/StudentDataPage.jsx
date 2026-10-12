@@ -107,12 +107,12 @@ export default function StudentDataPage({ students, isLoading, onAddStudent, onI
                   value={form[field.key]}
                   onChange={updateField}
                   placeholder={field.placeholder}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full rounded-xl border border-sky-100 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300"
                 />
               </div>
             ))}
           </div>
-          <button type="submit" disabled={isSubmitting || isLoading} className="mt-5 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 disabled:opacity-60">
+          <button type="submit" disabled={isSubmitting || isLoading} className="mt-5 rounded-xl bg-black px-5 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-60">
             {isSubmitting ? 'Menyimpan...' : 'Tambah Siswa'}
           </button>
         </form>
@@ -123,7 +123,7 @@ export default function StudentDataPage({ students, isLoading, onAddStudent, onI
             Gunakan judul kolom <span className="font-semibold text-slate-700">NIS, Nama Lengkap, Kelas, Asal Sekolah</span>.
             Data dengan NIS yang sudah ada akan dilewati.
           </p>
-          <label htmlFor="student-csv" className="mt-5 inline-flex cursor-pointer rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20">
+          <label htmlFor="student-csv" className="mt-5 inline-flex cursor-pointer rounded-xl bg-black px-5 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800">
             Pilih File CSV
           </label>
           <input
@@ -148,7 +148,7 @@ export default function StudentDataPage({ students, isLoading, onAddStudent, onI
         </div>
         <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white/80 shadow-sm">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
+            <thead className="bg-sky-50 text-xs uppercase tracking-wide text-slate-600">
               <tr>
                 <th className="px-4 py-3">NIS</th>
                 <th className="px-4 py-3">Nama Lengkap</th>

@@ -156,7 +156,7 @@ export default function DetailPage({ students, onLoadReport }) {
             value={month}
             onChange={(event) => setMonth(event.target.value)}
             required
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
+            className="w-full rounded-xl border border-sky-100 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300"
           />
         </div>
         <div className="w-full sm:w-64">
@@ -165,7 +165,7 @@ export default function DetailPage({ students, onLoadReport }) {
             id="report-class"
             value={className}
             onChange={(event) => setClassName(event.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
+            className="w-full rounded-xl border border-sky-100 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300"
           >
             <option value="">Semua kelas</option>
             {classOptions.map((item) => <option key={item} value={item}>{item}</option>)}
@@ -174,7 +174,7 @@ export default function DetailPage({ students, onLoadReport }) {
         <button
           type="submit"
           disabled={isLoading}
-          className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 disabled:opacity-60"
+          className="rounded-xl bg-black px-5 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-60"
         >
           {isLoading ? 'Memuat rekap...' : 'Tampilkan Rekap'}
         </button>
@@ -196,7 +196,7 @@ export default function DetailPage({ students, onLoadReport }) {
                 type="button"
                 onClick={exportPdf}
                 disabled={report.length === 0 || isExportingPdf}
-                className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                className="rounded-xl bg-black px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-slate-900/20 transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-50"
               >
                 {isExportingPdf ? 'Membuat PDF...' : 'PDF / Simpan di iPhone'}
               </button>
@@ -204,7 +204,7 @@ export default function DetailPage({ students, onLoadReport }) {
                 type="button"
                 onClick={() => downloadReportCsv(month, report)}
                 disabled={report.length === 0}
-                className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                className="rounded-xl bg-black px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-slate-900/20 transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-50"
               >
                 Unduh CSV
               </button>
@@ -212,16 +212,16 @@ export default function DetailPage({ students, onLoadReport }) {
                 type="button"
                 onClick={() => window.print()}
                 disabled={report.length === 0}
-                className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                className="rounded-xl bg-black px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-slate-900/20 transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-50"
               >
                 Cetak Rapor
               </button>
             </div>
           </div>
 
-          <div className="screen-report-table hidden overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-sm md:block">
+          <div className="screen-report-table hidden overflow-hidden rounded-2xl border border-sky-100 bg-white/90 shadow-sm md:block">
             <table className="w-full table-fixed text-left text-xs sm:text-sm">
-              <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
+              <thead className="bg-sky-50 text-xs uppercase tracking-wide text-slate-600">
                 <tr>
                   <th className="w-[4%] break-words px-1 py-2 sm:px-2">No.</th>
                   <th className="w-[17%] break-words px-1 py-2 sm:px-2">NIS / Nama Siswa</th>
@@ -279,10 +279,10 @@ export default function DetailPage({ students, onLoadReport }) {
             {report.map((student, index) => (
               <article
                 key={`${student.nis}-${student.className}-card`}
-                className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm"
+                className="rounded-2xl border border-sky-100 bg-white/90 p-4 shadow-sm"
               >
                 <div className="mb-3 flex items-start gap-3 border-b border-slate-100 pb-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-cyan-50 text-xs font-bold text-cyan-700">
                     {index + 1}
                   </span>
                   <div className="min-w-0">

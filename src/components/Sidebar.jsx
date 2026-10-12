@@ -7,18 +7,20 @@ export default function Sidebar({ currentPage, setCurrentPage }) {
   ];
 
   return (
-    <aside className="hidden lg:flex flex-col w-72 bg-gradient-to-b from-slate-950 via-slate-800 to-slate-700 p-6 text-white justify-between shadow-2xl h-full">
+    <aside className="hidden lg:flex flex-col w-72 bg-white p-6 text-slate-800 justify-between shadow-2xl h-full border-r border-slate-200">
       <div>
-        <div className="flex items-center gap-3 mb-10 pb-4 border-b border-white/20">
-          <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center font-bold text-xl border border-white/30 shadow-md">
+        {/* Bagian Header / Logo */}
+        <div className="flex items-center gap-3 mb-10 pb-4 border-b border-slate-200">
+          <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center font-bold text-xl border border-slate-200 shadow-md">
             🏫
           </div>
           <div>
-            <h1 className="font-bold text-base leading-tight">Presensi PWA</h1>
-            <p className="text-xs text-blue-100 font-medium">Panel Guru & Admin</p>
+            <h1 className="font-bold text-base leading-tight text-slate-900">Presensi PWA</h1>
+            <p className="text-xs text-slate-500 font-medium">Panel Guru & Admin</p>
           </div>
         </div>
 
+        {/* Menu Navigasi */}
         <nav className="space-y-3">
           {menuItems.map((item) => (
             <button
@@ -26,8 +28,8 @@ export default function Sidebar({ currentPage, setCurrentPage }) {
               onClick={() => setCurrentPage(item.key)}
               className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
                 currentPage === item.key
-                  ? 'bg-white text-blue-600 shadow-lg shadow-black/10'
-                  : 'text-white hover:bg-white/10'
+                  ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               <span className="text-lg">{item.icon}</span> {item.label}
@@ -36,10 +38,11 @@ export default function Sidebar({ currentPage, setCurrentPage }) {
         </nav>
       </div>
 
-      <div className="bg-white/15 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-xs">
-        <p className="font-bold text-white">Sistem Aktif</p>
-        <p className="text-emerald-200 font-medium mt-0.5 flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span> Service Worker OK
+      {/* Bagian Status di Bawah */}
+      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+        <p className="font-bold text-slate-900">Sistem Aktif</p>
+        <p className="text-emerald-600 font-medium mt-0.5 flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Service Worker OK
         </p>
       </div>
     </aside>

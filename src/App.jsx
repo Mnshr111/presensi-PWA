@@ -201,7 +201,7 @@ export default function App() {
         {studentsError && (
           <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">
             <span>Gagal memuat atau menyimpan data siswa: {studentsError}</span>
-            <button onClick={() => setStudentsRefreshToken((current) => current + 1)} className="font-bold underline">
+            <button onClick={() => setStudentsRefreshToken((current) => current + 1)} className="rounded-lg bg-black px-3 py-2 font-bold text-white underline transition hover:bg-slate-800">
               Muat ulang data
             </button>
           </div>
@@ -235,17 +235,17 @@ export default function App() {
   }
 
   return (
-    <div className="w-screen h-screen flex p-0 m-0 bg-gradient-to-br from-slate-200 via-slate-100 to-white overflow-hidden">
-      <div className="w-full h-full bg-slate-50/90 backdrop-blur-2xl flex flex-col lg:flex-row shadow-none border-none">
+    <div className="w-screen h-screen flex p-0 m-0 bg-gradient-to-br from-[#eaf3f9] via-[#e1eef6] to-[#d6e8f3] overflow-hidden">
+      <div className="w-full h-full bg-white/35 backdrop-blur-2xl flex flex-col lg:flex-row shadow-none border-none">
         {session && <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />}
 
         <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-          <header className="lg:hidden bg-gradient-to-r from-slate-900 to-slate-700 p-5 text-white shadow-md flex justify-between items-center">
+          <header className="lg:hidden bg-gradient-to-r from-cyan-100 to-sky-100 p-5 text-slate-800 shadow-sm flex justify-between items-center border-b border-white/70">
             <div>
-              <p className="text-xs text-blue-100">Portal Presensi</p>
+              <p className="text-xs font-medium text-cyan-800">Portal Presensi</p>
               <h1 className="font-bold text-base">Siswa PWA</h1>
             </div>
-            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-full bg-white/70 flex items-center justify-center font-bold shadow-sm">
               👨‍🏫
             </div>
           </header>

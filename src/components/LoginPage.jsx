@@ -34,7 +34,7 @@ export default function LoginPage({ user, onSignIn, onSignOut }) {
   return (
     <div className="max-w-md mx-auto pt-4">
       <div className="glass-card p-8 rounded-3xl shadow-xl border border-white/80 bg-white/80">
-        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-slate-200 text-blue-600 flex items-center justify-center text-2xl shadow-inner">
+        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-2xl shadow-inner">
           🔒
         </div>
 
@@ -46,7 +46,7 @@ export default function LoginPage({ user, onSignIn, onSignOut }) {
               type="button"
               onClick={handleSignOut}
               disabled={isSubmitting}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-bold text-sm shadow-lg shadow-blue-500/20 disabled:opacity-60"
+              className="w-full py-3.5 rounded-xl bg-black text-white font-bold text-sm shadow-lg shadow-slate-900/20 transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-60"
             >
               {isSubmitting ? 'Memproses...' : 'Keluar'}
             </button>
@@ -67,7 +67,7 @@ export default function LoginPage({ user, onSignIn, onSignOut }) {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
-                  className="w-full py-3 px-4 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full py-3 px-4 rounded-xl bg-white border border-sky-100 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300"
                 />
               </div>
               <div>
@@ -79,14 +79,14 @@ export default function LoginPage({ user, onSignIn, onSignOut }) {
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   required
-                  className="w-full py-3 px-4 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full py-3 px-4 rounded-xl bg-white border border-sky-100 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300"
                 />
               </div>
               {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-bold text-sm shadow-lg shadow-blue-500/20 disabled:opacity-60"
+                className="w-full py-3.5 rounded-xl bg-black text-white font-bold text-sm shadow-lg shadow-slate-900/20 transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-60"
               >
                 {isSubmitting ? 'Memproses...' : 'Masuk'}
               </button>

@@ -14,11 +14,13 @@ export default function MobileNav({ currentPage, setCurrentPage }) {
           onClick={() => setCurrentPage(item.key)}
           aria-label={item.key === 'students' ? 'Data Siswa' : item.key === 'home' ? 'Dashboard Utama' : item.key === 'detail' ? 'Rekap dan Laporan' : 'Pengaturan Akun'}
           title={item.key === 'students' ? 'Data Siswa' : undefined}
-          className={`p-3 rounded-2xl transition ${
-            currentPage === item.key ? 'bg-blue-500 text-white shadow-md' : 'text-slate-500'
+          className={`p-3 rounded-2xl text-white transition ${
+            currentPage === item.key
+              ? 'bg-black shadow-md shadow-slate-900/20 ring-2 ring-cyan-200'
+              : 'bg-slate-900 hover:bg-slate-700'
           }`}
         >
-          {item.icon}
+          <span className="grayscale brightness-0 invert">{item.icon}</span>
         </button>
       ))}
     </nav>

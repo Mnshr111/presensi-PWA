@@ -28,7 +28,7 @@ function todayLocalDate() {
   return localDate.toISOString().slice(0, 10);
 }
 
-const inputClass = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400';
+const inputClass = 'w-full rounded-xl border border-sky-100 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300';
 const labelClass = 'mb-1 block text-xs font-semibold text-slate-600';
 
 function createEmptyDraft() {
@@ -337,10 +337,10 @@ export default function DashboardPage({ userId, students, onSaveMeeting, student
                       <button
                         type="button"
                         onClick={() => addStudent(student.id)}
-                        className="w-full rounded-lg px-3 py-2 text-left transition hover:bg-slate-100 focus:bg-slate-100 focus:outline-none"
+                        className="w-full rounded-lg bg-slate-900 px-3 py-2 text-left text-white transition hover:bg-slate-700 focus:bg-slate-700 focus:outline-none"
                       >
-                        <span className="block text-sm font-semibold text-slate-800">{student.name}</span>
-                        <span className="mt-0.5 block text-xs text-slate-500">
+                        <span className="block text-sm font-semibold text-white">{student.name}</span>
+                        <span className="mt-0.5 block text-xs text-slate-300">
                           NIS {student.nis} · Kelas {student.className}
                         </span>
                       </button>
@@ -362,7 +362,7 @@ export default function DashboardPage({ userId, students, onSaveMeeting, student
 
           <div className="hidden overflow-x-auto rounded-xl border border-slate-200 bg-white md:block">
             <table className="w-full min-w-[920px] text-left text-sm">
-              <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
+              <thead className="bg-sky-50 text-xs uppercase tracking-wide text-slate-600">
                 <tr>
                   <th className="w-14 px-3 py-3">No.</th>
                   <th className="px-3 py-3">Nama Siswa</th>
@@ -415,7 +415,7 @@ export default function DashboardPage({ userId, students, onSaveMeeting, student
                       </td>
                       <td className="px-3 py-3">
                         {isAdditional && (
-                          <button type="button" onClick={() => removeAdditionalStudent(student.id)} className="font-semibold text-rose-600 hover:underline">
+                          <button type="button" onClick={() => removeAdditionalStudent(student.id)} className="rounded-lg bg-black px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800">
                             Hapus
                           </button>
                         )}
@@ -440,7 +440,7 @@ export default function DashboardPage({ userId, students, onSaveMeeting, student
               return (
                 <article key={student.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                   <div className="mb-4 flex items-start gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-cyan-50 text-xs font-bold text-cyan-700">
                       {index + 1}
                     </span>
                     <div className="min-w-0 flex-1">
@@ -453,7 +453,7 @@ export default function DashboardPage({ userId, students, onSaveMeeting, student
                       <button
                         type="button"
                         onClick={() => removeAdditionalStudent(student.id)}
-                        className="shrink-0 text-xs font-semibold text-rose-600 hover:underline"
+                        className="shrink-0 rounded-lg bg-black px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800"
                       >
                         Hapus
                       </button>
@@ -508,7 +508,7 @@ export default function DashboardPage({ userId, students, onSaveMeeting, student
           {error && <p role="alert" className="mt-5 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>}
 
           <div className="mt-6 flex justify-end">
-            <button type="submit" disabled={isSaving || studentsLoading} className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 disabled:opacity-60">
+            <button type="submit" disabled={isSaving || studentsLoading} className="rounded-xl bg-black px-6 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-60">
               {isSaving ? 'Menyimpan ke Spreadsheet...' : 'Simpan Pertemuan'}
             </button>
           </div>
