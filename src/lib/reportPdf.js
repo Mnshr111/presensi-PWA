@@ -19,12 +19,13 @@ export function createReportPdf(month, monthLabel, className, rows) {
     ? ((studentsWithGrade.length / totalStudents) * 100).toFixed(2) 
     : '0.00';
 
-  // Latar Belakang Halaman Penuh (Diterapkan di setiap halaman baru)
+  // Latar Belakang Halaman Penuh
   const applyBackground = () => {
     pdf.setFillColor(colorBgSoft[0], colorBgSoft[1], colorBgSoft[2]);
     pdf.rect(0, 0, pageWidth, pageHeight, 'F');
   };
 
+  // Terapkan background awal di halaman 1
   applyBackground();
 
   // 2. Header Kiri: Judul & Subjudul
@@ -46,52 +47,9 @@ export function createReportPdf(month, monthLabel, className, rows) {
   pdf.setTextColor(30, 64, 175);
   pdf.text(`Tahun Ajaran 2026/2027  —  Bulan ${monthLabel.toUpperCase()}`, 17, 29);
 
-  // 3. Logo & Identitas Bimbel SG®
-  const logoX = 118;
-  const logoY = 9;
-
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(22);
-  pdf.setTextColor(30, 58, 138); // Biru khas SG
-  pdf.text('SG®', logoX + 22, logoY + 11);
-
-  pdf.setFont('helvetica', 'italic');
-  pdf.setFontSize(7);
-  pdf.setTextColor(59, 130, 246);
-  pdf.text('Langkah Pasti Menuju Universitas Indonesia', logoX + 2, logoY + 16.5);
-
-  pdf.setDrawColor(59, 130, 246);
-  pdf.setLineWidth(0.4);
-  pdf.line(logoX + 2, logoY + 18, logoX + 64, logoY + 18);
-
-  // 4. Kotak Status Penyelesaian Tugas (Kanan Atas)
-  const boxWidth = 58;
-  const boxHeight = 20;
-  const boxX = pageWidth - boxWidth - 14;
-  const boxY = 10;
-
-  pdf.setFillColor(255, 255, 255);
-  pdf.setDrawColor(226, 232, 240);
-  pdf.roundedRect(boxX, boxY, boxWidth, boxHeight, 3, 3, 'FD');
-
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(6);
-  pdf.setTextColor(113, 128, 150);
-  pdf.text('STATUS PENYELESAIAN TUGAS', boxX + 6, boxY + 5);
-
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(13);
-  pdf.setTextColor(30, 41, 59);
-  pdf.text(`${completionRate}%`, boxX + 16, boxY + 13);
-
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(6);
-  pdf.setTextColor(113, 128, 150);
-  pdf.text(`Kelas: ${className || 'Semua Kelas'} | Total: ${totalStudents} Siswa`, boxX + 6, boxY + 17.5);
-
-  // 5. Tabel Utama (startY diturunkan ke 34 agar tidak menabrak header)
   autoTable(pdf, {
     startY: 34,
+    margin: { left: 14, right: 14, top: 34, bottom: 15 }, // Batasan margin yang jelas
     head: [[
       'No.',
       'NIS',
@@ -109,18 +67,18 @@ export function createReportPdf(month, monthLabel, className, rows) {
     ]],
     body: rows.map((student, index) => [
       index + 1,
-      student.nis,
-      student.name,
-      student.className,
-      student.sessions,
-      student.attendance.Hadir,
-      student.attendance.Izin,
-      student.attendance.Sakit,
-      student.attendance.Alpa,
-      student.attendance['Izin kelas lain'],
+      student.nis || '-',
+      student.name || '-',
+      student.className || '-',
+      student.sessions || 0,
+      student.attendance?.Hadir || 0,
+      student.attendance?.Izin || 0,
+      student.attendance?.Sakit || 0,
+      student.attendance?.Alpa || 0,
+      student.attendance?.['Izin kelas lain'] || 0,
       '-',
       student.averageGrade === null ? '-' : student.averageGrade.toFixed(2),
-      student.subjects.length > 0
+      student.subjects && student.subjects.length > 0
         ? student.subjects.map((subject) => `${subject.subject}: ${subject.averageGrade.toFixed(2)}`).join('\n')
         : 'Belum ada nilai',
     ]),
@@ -160,31 +118,33 @@ export function createReportPdf(month, monthLabel, className, rows) {
       halign: 'center',
       valign: 'middle',
     },
+    // Penyesuaian lebar kolom agar pas dan tidak terpotong di kanan
     columnStyles: {
-      0: { halign: 'center', cellWidth: 9 },
-      1: { cellWidth: 18 },
-      2: { cellWidth: 35, fontStyle: 'bold' },
-      3: { halign: 'center', cellWidth: 16 },
-      4: { halign: 'center', cellWidth: 15 },
-      5: { halign: 'center', cellWidth: 10 },
-      6: { halign: 'center', cellWidth: 10 },
-      7: { halign: 'center', cellWidth: 10 },
-      8: { halign: 'center', cellWidth: 10 },
-      9: { halign: 'center', cellWidth: 18 },
-      10: { halign: 'center', cellWidth: 10 },
-      11: { halign: 'center', cellWidth: 16, fontStyle: 'bold' },
-      12: { cellWidth: 50 },
+      0: { halign: 'center', cellWidth: 10 },
+      1: { cellWidth: 20 },
+      2: { cellWidth: 40, fontStyle: 'bold' },
+      3: { halign: 'center', cellWidth: 18 },
+      4: { halign: 'center', cellWidth: 16 },
+      5: { halign: 'center', cellWidth: 12 },
+      6: { halign: 'center', cellWidth: 12 },
+      7: { halign: 'center', cellWidth: 12 },
+      8: { halign: 'center', cellWidth: 12 },
+      9: { halign: 'center', cellWidth: 20 },
+      10: { halign: 'center', cellWidth: 12 },
+      11: { halign: 'center', cellWidth: 18, fontStyle: 'bold' },
+      12: { cellWidth: 'auto' }, // Biarkan otomatis menyesuaikan sisa lebar halaman
     },
     alternateRowStyles: {
       fillColor: [255, 255, 255],
     },
-    // Handler saat pindah halaman baru (agar latar belakang tetap krem pastel dan ada nomor halaman)
-    didDrawPage: (data) => {
-      // Jika halaman > 1, terapkan background ulang
+    // Gunakan willDrawPage untuk mewarnai background halaman baru SEBELUM konten tabel digambar
+    willDrawPage: (data) => {
       if (data.pageNumber > 1) {
         applyBackground();
       }
-
+    },
+    // Handler untuk footer/nomor halaman
+    didDrawPage: (data) => {
       const pageCount = pdf.getNumberOfPages();
       pdf.setFontSize(8);
       pdf.setTextColor(113, 128, 150);
