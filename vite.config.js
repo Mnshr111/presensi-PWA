@@ -14,7 +14,7 @@ export default defineConfig({
       },
       manifest: {
         name: 'Aplikasi Presensi Siswa',
-        short_name: 'PresensiSiswa',
+        short_name: 'Presens Siswa SG',
         description: 'Aplikasi pencatatan kehadiran siswa berbasis PWA',
         theme_color: '#2563eb',
         background_color: '#ffffff',
