@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, BookOpen, CalendarDays, ChevronRight, Users } from 'lucide-react';
 
 const AGENDA_CACHE_VERSION = 1;
@@ -51,6 +51,18 @@ function normalizeAgendaRecords(records, className) {
   }));
 }
 
+function compareNewestMeetings(left, right) {
+  const dateOrder = right.date.localeCompare(left.date);
+  if (dateOrder !== 0) return dateOrder;
+
+  const leftRow = Number(left.id);
+  const rightRow = Number(right.id);
+  if (Number.isFinite(leftRow) && Number.isFinite(rightRow)) {
+    return rightRow - leftRow;
+  }
+  return right.id.localeCompare(left.id);
+}
+
 function formatMeetingDate(date) {
   if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return 'Tanggal tidak tersedia';
@@ -71,6 +83,7 @@ function formatMeetingDate(date) {
 export default function ClassAgendaPage({ userId, students, onLoadAgenda }) {
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
+  const [showAllMeetings, setShowAllMeetings] = useState(false);
   const [meetings, setMeetings] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -96,6 +109,7 @@ export default function ClassAgendaPage({ userId, students, onLoadAgenda }) {
     [meetings],
   );
   const subjectMeetings = meetings.filter((meeting) => meeting.subject.trim() === selectedSubject);
+  const visibleSubjectMeetings = showAllMeetings ? subjectMeetings : subjectMeetings.slice(0, 3);
 
   const syncClassAgenda = useCallback((className) => {
     const activeSync = syncingClassesRef.current.get(className);
@@ -140,9 +154,7 @@ export default function ClassAgendaPage({ userId, students, onLoadAgenda }) {
       const newMeetings = normalizeAgendaRecords(response.records, className);
       const mergedMeetings = new Map((cached?.records || []).map((meeting) => [meeting.id, meeting]));
       newMeetings.forEach((meeting) => mergedMeetings.set(meeting.id, meeting));
-      const records = [...mergedMeetings.values()].sort(
-        (left, right) => right.date.localeCompare(left.date) || right.id.localeCompare(left.id),
-      );
+      const records = [...mergedMeetings.values()].sort(compareNewestMeetings);
       const cache = {
         version: AGENDA_CACHE_VERSION,
         lastRow: response.lastRow,
@@ -174,6 +186,7 @@ export default function ClassAgendaPage({ userId, students, onLoadAgenda }) {
     selectedClassRef.current = className;
     setSelectedClass(className);
     setSelectedSubject('');
+    setShowAllMeetings(false);
     setError('');
     setSyncMessage('');
     let cached = null;
@@ -256,6 +269,7 @@ export default function ClassAgendaPage({ userId, students, onLoadAgenda }) {
     selectedClassRef.current = '';
     setSelectedClass('');
     setSelectedSubject('');
+    setShowAllMeetings(false);
     setMeetings([]);
     setError('');
     setSyncMessage('');
@@ -316,84 +330,108 @@ export default function ClassAgendaPage({ userId, students, onLoadAgenda }) {
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {classSubjects.map((subject, index) => (
-              <button
-                key={subject}
-                type="button"
-                onClick={() => setSelectedSubject(subject)}
-                disabled={isLoading}
-                className={`flex items-center gap-3 rounded-2xl border p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-60 ${
-                  selectedSubject === subject
-                    ? 'border-slate-900 bg-slate-900 text-white'
-                    : 'border-white/80 bg-white/85 text-slate-800'
-                }`}
-              >
-                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                  selectedSubject === subject
-                    ? 'bg-white/15 text-white'
-                    : index % 3 === 0
-                      ? 'bg-cyan-50 text-cyan-700'
-                      : index % 3 === 1
-                        ? 'bg-violet-50 text-violet-600'
-                        : 'bg-emerald-50 text-emerald-700'
-                }`}>
-                  <BookOpen size={19} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold">{subject}</span>
-                  <span className={`mt-0.5 block text-xs ${
-                    selectedSubject === subject ? 'text-slate-300' : 'text-slate-500'
+              <Fragment key={subject}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedSubject(selectedSubject === subject ? '' : subject);
+                    setShowAllMeetings(false);
+                  }}
+                  disabled={isLoading}
+                  aria-expanded={selectedSubject === subject}
+                  aria-controls={selectedSubject === subject ? `agenda-subject-${index}` : undefined}
+                  className={`flex items-center gap-3 rounded-2xl border p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-60 ${
+                    selectedSubject === subject
+                      ? 'border-slate-900 bg-slate-900 text-white'
+                      : 'border-white/80 bg-white/85 text-slate-800'
+                  }`}
+                >
+                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                    selectedSubject === subject
+                      ? 'bg-white/15 text-white'
+                      : index % 3 === 0
+                        ? 'bg-cyan-50 text-cyan-700'
+                        : index % 3 === 1
+                          ? 'bg-violet-50 text-violet-600'
+                          : 'bg-emerald-50 text-emerald-700'
                   }`}>
-                    {meetings.filter((meeting) => meeting.subject.trim() === subject).length} pertemuan
+                    <BookOpen size={19} />
                   </span>
-                </span>
-                <ChevronRight size={18} className={selectedSubject === subject ? 'text-white' : 'text-slate-400'} />
-              </button>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-bold">{subject}</span>
+                    <span className={`mt-0.5 block text-xs ${
+                      selectedSubject === subject ? 'text-slate-300' : 'text-slate-500'
+                    }`}>
+                      {meetings.filter((meeting) => meeting.subject.trim() === subject).length} pertemuan
+                    </span>
+                  </span>
+                  <ChevronRight
+                    size={18}
+                    className={`text-slate-400 transition-transform ${selectedSubject === subject ? 'rotate-90 text-white' : ''}`}
+                  />
+                </button>
+
+                {selectedSubject === subject && (
+                  <section
+                    id={`agenda-subject-${index}`}
+                    aria-label={`Agenda ${selectedSubject} kelas ${selectedClass}`}
+                    className="col-span-full rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm sm:p-5"
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <h4 className="font-bold text-slate-800">{selectedSubject} · {selectedClass}</h4>
+                      <span className="text-xs text-slate-500">{subjectMeetings.length} pertemuan</span>
+                    </div>
+                    {subjectMeetings.length > 0 ? (
+                      <ol className="space-y-3">
+                        {visibleSubjectMeetings.map((meeting, meetingIndex) => (
+                          <li
+                            key={`${meeting.id || `${meeting.date}-${meeting.tentorCode}`}-${meetingIndex}`}
+                            className="rounded-2xl border border-white/80 bg-white p-4 shadow-sm sm:p-5"
+                          >
+                            <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-3">
+                              <div>
+                                <p className="text-sm font-bold text-slate-800">{formatMeetingDate(meeting.date)}</p>
+                                <p className="mt-1 text-xs text-slate-500">{meeting.subject} · {meeting.className}</p>
+                              </div>
+                              <div className="rounded-xl bg-sky-50 px-3 py-2 text-right text-xs text-slate-600">
+                                <p className="font-bold text-slate-800">{meeting.tentorName || 'Tentor tidak dicatat'}</p>
+                                {meeting.tentorCode && <p>Kode: {meeting.tentorCode}</p>}
+                              </div>
+                            </div>
+                            <dl className="grid gap-4 sm:grid-cols-2">
+                              <div>
+                                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Materi dibahas</dt>
+                                <dd className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{meeting.topic || 'Tidak dicatat'}</dd>
+                              </div>
+                              <div>
+                                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Materi selanjutnya</dt>
+                                <dd className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{meeting.nextTopic || 'Belum ditentukan'}</dd>
+                              </div>
+                            </dl>
+                          </li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <p className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+                        Belum ada agenda untuk mata pelajaran ini.
+                      </p>
+                    )}
+                    {subjectMeetings.length > 3 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllMeetings((showAll) => !showAll)}
+                        className="mt-4 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+                      >
+                        {showAllMeetings
+                          ? 'Tampilkan lebih sedikit'
+                          : `Tampilkan semua (${subjectMeetings.length - 3} lainnya)`}
+                      </button>
+                    )}
+                  </section>
+                )}
+              </Fragment>
             ))}
           </div>
-
-          {selectedSubject && (
-            <section aria-label={`Agenda ${selectedSubject} kelas ${selectedClass}`} className="mt-6">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h4 className="font-bold text-slate-800">{selectedSubject} · {selectedClass}</h4>
-                <span className="text-xs text-slate-500">{subjectMeetings.length} pertemuan</span>
-              </div>
-              {subjectMeetings.length > 0 ? (
-                <ol className="space-y-3">
-                  {subjectMeetings.map((meeting, index) => (
-                    <li
-                      key={`${meeting.id || `${meeting.date}-${meeting.tentorCode}`}-${index}`}
-                      className="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-sm sm:p-5"
-                    >
-                      <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-3">
-                        <div>
-                          <p className="text-sm font-bold text-slate-800">{formatMeetingDate(meeting.date)}</p>
-                          <p className="mt-1 text-xs text-slate-500">{meeting.subject} · {meeting.className}</p>
-                        </div>
-                        <div className="rounded-xl bg-sky-50 px-3 py-2 text-right text-xs text-slate-600">
-                          <p className="font-bold text-slate-800">{meeting.tentorName || 'Tentor tidak dicatat'}</p>
-                          {meeting.tentorCode && <p>Kode: {meeting.tentorCode}</p>}
-                        </div>
-                      </div>
-                      <dl className="grid gap-4 sm:grid-cols-2">
-                        <div>
-                          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Materi dibahas</dt>
-                          <dd className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{meeting.topic || 'Tidak dicatat'}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Materi selanjutnya</dt>
-                          <dd className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{meeting.nextTopic || 'Belum ditentukan'}</dd>
-                        </div>
-                      </dl>
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
-                  Belum ada agenda untuk mata pelajaran ini.
-                </p>
-              )}
-            </section>
-          )}
 
           {!isLoading && !error && classSubjects.length === 0 && (
             <p className="mt-4 rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
