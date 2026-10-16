@@ -229,9 +229,9 @@ export default function DashboardPage({ userId, students, onSaveMeeting, student
     <section>
       <div className="mb-8 border-b border-slate-200/60 pb-4">
         <h2 className="text-2xl font-bold text-slate-800">Dashboard Pertemuan</h2>
-        <p className="mt-1 text-sm text-slate-500">Isi materi dan absensi kelas, lalu simpan ke Google Spreadsheet.</p>
+        <p className="mt-1 text-sm text-slate-500">Isi materi dan absensi kelas, lalu klik simpan pertemuan</p>
         <p className="mt-2 text-xs text-slate-500">
-          Draft disimpan otomatis di browser perangkat ini sampai presensi berhasil dikirim ke Spreadsheet.
+          Draft disimpan otomatis di browser perangkat ini sampai presensi berhasil dikirim.
         </p>
       </div>
 
