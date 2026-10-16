@@ -1,11 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import ClassAgendaPage from './components/ClassAgendaPage';
 import DashboardPage from './components/DashboardPage';
 import DetailPage from './components/DetailPage';
 import LoginPage from './components/LoginPage';
 import MobileNav from './components/MobileNav';
 import StudentDataPage from './components/StudentDataPage';
 import Sidebar from './components/Sidebar';
-import { loadMonthlyReportFromAppsScript, saveMeetingToAppsScript } from './lib/googleAppsScript';
+import {
+  loadClassAgendaFromAppsScript,
+  loadMonthlyReportFromAppsScript,
+  saveMeetingToAppsScript,
+} from './lib/googleAppsScript';
 import { supabase, supabaseAnonKey, supabaseUrl } from './lib/supabase';
 
 const appsScriptUrl = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL;
@@ -219,6 +224,19 @@ export default function App() {
     });
   };
 
+  const loadClassAgenda = useCallback(async (className, sinceRow) => {
+    if (!supabase) throw new Error('Konfigurasi Supabase belum tersedia.');
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw new Error(error.message);
+    if (!data.session) throw new Error('Sesi login tidak ditemukan. Silakan masuk kembali.');
+
+    return loadClassAgendaFromAppsScript(appsScriptUrl, className, sinceRow, {
+      accessToken: data.session.access_token,
+      supabaseUrl,
+      supabaseAnonKey,
+    });
+  }, []);
+
   const configurationMessage = !supabase
     ? 'Buat file .env.local dari .env.example, isi URL dan anon key proyek, lalu mulai ulang aplikasi.'
     : '';
@@ -262,6 +280,9 @@ export default function App() {
         )}
         {currentPage === 'detail' && (
           <DetailPage students={siswaList} onLoadReport={loadMonthlyReport} />
+        )}
+        {currentPage === 'agenda' && (
+          <ClassAgendaPage userId={userId} students={siswaList} onLoadAgenda={loadClassAgenda} />
         )}
         {currentPage === 'students' && (
           <StudentDataPage

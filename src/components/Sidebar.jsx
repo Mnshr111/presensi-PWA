@@ -1,9 +1,10 @@
-import { Home, Users, BarChart3, UserCog, GraduationCap } from 'lucide-react';
+import { Home, Users, CalendarDays, BarChart3, UserCog, GraduationCap } from 'lucide-react';
 
 export default function Sidebar({ currentPage, setCurrentPage }) {
   const menuItems = [
     { key: 'home', label: 'Dashboard', icon: Home },
     { key: 'students', label: 'Data Siswa', icon: Users },
+    { key: 'agenda', label: 'Agenda Kelas', icon: CalendarDays },
     { key: 'detail', label: 'Rekap & Laporan', icon: BarChart3 },
     { key: 'login', label: 'Pengaturan Akun', icon: UserCog },
   ];

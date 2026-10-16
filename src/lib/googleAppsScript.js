@@ -93,3 +93,13 @@ export function loadMonthlyReportFromAppsScript(endpoint, filters, credentials) 
     className: filters.className,
   });
 }
+
+export function loadClassAgendaFromAppsScript(endpoint, className, sinceRow, credentials) {
+  return postAppsScriptRequest(endpoint, {
+    ...authFields(credentials),
+    action: 'monthlyReport',
+    reportType: 'agenda',
+    className,
+    sinceRow: String(sinceRow),
+  });
+}

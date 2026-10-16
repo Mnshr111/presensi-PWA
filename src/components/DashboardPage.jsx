@@ -1,24 +1,7 @@
 import { useMemo, useState } from 'react';
+import { subjectOptions } from '../constants/subjects';
 
 const attendanceOptions = ['Hadir', 'Izin', 'Sakit', 'Alpa', 'Izin kelas lain'];
-const subjectOptions = [
-  'Matematika',
-  'Bahasa Indonesia',
-  'Bahasa Inggris',
-  'IPA',
-  'IPS',
-  'Fisika',
-  'Kimia',
-  'Biologi',
-  'Matematika Lanjut',
-  'Sejarah',
-  'Geografi',
-  'Ekonomi',
-  'Sosilogi',
-  'PKN',
-
-
-];
 
 const DRAFT_VERSION = 1;
 

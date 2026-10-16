@@ -1,9 +1,10 @@
-import { Home, Users, BarChart3, UserCog } from 'lucide-react';
+import { Home, Users, CalendarDays, BarChart3, UserCog } from 'lucide-react';
 
 export default function MobileNav({ currentPage, setCurrentPage }) {
   const menuItems = [
     { key: 'home', icon: Home, label: 'Dashboard' },
     { key: 'students', icon: Users, label: 'Siswa' },
+    { key: 'agenda', icon: CalendarDays, label: 'Agenda' },
     { key: 'detail', icon: BarChart3, label: 'Laporan' },
     { key: 'login', icon: UserCog, label: 'Akun' },
   ];
@@ -22,7 +23,7 @@ export default function MobileNav({ currentPage, setCurrentPage }) {
             key={item.key}
             onClick={() => setCurrentPage(item.key)}
             aria-label={item.label}
-            className={`relative flex items-center justify-center py-3 px-5 rounded-full transition-all duration-300 ease-out ${
+            className={`relative flex items-center justify-center py-3 px-3 sm:px-5 rounded-full transition-all duration-300 ease-out ${
               isActive
                 ? 'bg-black text-white shadow-md shadow-black/20 scale-105'
                 : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'
