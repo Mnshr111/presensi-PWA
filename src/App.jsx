@@ -307,8 +307,8 @@ export default function App() {
         <main className="flex-1 flex flex-col h-full overflow-hidden relative">
           <header className="lg:hidden bg-gradient-to-r from-cyan-100 to-sky-100 p-5 text-slate-800 shadow-sm flex justify-between items-center border-b border-white/70">
             <div>
-              <p className="text-xs font-medium text-cyan-800">Portal Presensi</p>
-              <h1 className="font-bold text-base">Siswa PWA</h1>
+              <p className="text-xs font-medium text-cyan-800">Portal Presensi Harian</p>
+              <h1 className="font-bold text-base">Siswa SG</h1>
             </div>
             
             {/* Bagian yang diubah: Emoji diganti teks "SG" berwarna biru bergaya ikon profil minimalis ala iPhone */}
