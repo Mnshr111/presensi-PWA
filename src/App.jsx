@@ -37,11 +37,15 @@ export default function App() {
   const [loadedStudentsKey, setLoadedStudentsKey] = useState('');
   const [studentsError, setStudentsError] = useState('');
   const [studentsRefreshToken, setStudentsRefreshToken] = useState(0);
+  const [profileState, setProfileState] = useState({ userId: '', data: null, error: '' });
   const userId = session?.user.id;
   const isAdmin = session?.user.app_metadata?.role === 'admin' && session.user.is_anonymous !== true;
   const activePage = !isAdmin && currentPage === 'students' ? 'home' : currentPage;
   const studentsLoadKey = userId ? `${userId}:${studentsRefreshToken}` : '';
   const studentsLoading = Boolean(studentsLoadKey && loadedStudentsKey !== studentsLoadKey);
+  const profileLoading = Boolean(userId && profileState.userId !== userId);
+  const profile = profileState.userId === userId ? profileState.data : null;
+  const profileError = profileState.userId === userId ? profileState.error : '';
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -92,6 +96,30 @@ export default function App() {
       active = false;
     };
   }, [userId, studentsRefreshToken]);
+
+  useEffect(() => {
+    if (!supabase || !userId) return undefined;
+
+    let active = true;
+
+    supabase
+      .from('profiles')
+      .select('id, display_name, tentor_code, role')
+      .eq('id', userId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!active) return;
+        setProfileState({
+          userId,
+          data: error ? null : data,
+          error: error?.message || '',
+        });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [userId]);
 
   const addStudent = async (student) => {
     if (!isAdmin) throw new Error('Akses admin diperlukan untuk mengelola data siswa.');
@@ -220,6 +248,24 @@ export default function App() {
     if (error) throw new Error(error.message);
   };
 
+  const saveProfile = async ({ displayName, tentorCode }) => {
+    if (!supabase || !userId) throw new Error('Sesi masuk tidak ditemukan.');
+    const role = isAdmin ? 'admin' : 'tentor';
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: userId,
+        display_name: displayName.trim(),
+        tentor_code: isAdmin ? '' : tentorCode.trim(),
+        role,
+      })
+      .select('id, display_name, tentor_code, role')
+      .single();
+
+    if (error) throw new Error(error.message);
+    setProfileState({ userId, data, error: '' });
+  };
+
   const saveMeeting = async (meeting) => {
     if (!supabase) throw new Error('Konfigurasi Supabase belum tersedia.');
     const { data, error } = await supabase.auth.getSession();
@@ -318,11 +364,20 @@ export default function App() {
           />
         )}
         {activePage === 'login' && (
-          <LoginPage
-            user={session.user}
-            isAnonymous={session.user.is_anonymous === true}
-            onSignOut={signOut}
-          />
+          profileLoading ? (
+            <p role="status" className="py-8 text-center text-sm text-slate-500">Memuat profil...</p>
+          ) : (
+            <LoginPage
+              key={userId}
+              user={session.user}
+              isAnonymous={session.user.is_anonymous === true}
+              role={isAdmin ? 'admin' : 'tentor'}
+              profile={profile}
+              profileError={profileError}
+              onSaveProfile={saveProfile}
+              onSignOut={signOut}
+            />
+          )
         )}
       </>
     );
