@@ -9,6 +9,7 @@ export default function StudentDataPage({
   onAddStudent,
   onUpdateStudent,
   onDeleteStudent,
+  onDeleteAllStudents,
   onImportStudents,
 }) {
   const [form, setForm] = useState(emptyForm);
@@ -18,6 +19,7 @@ export default function StudentDataPage({
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 
   const updateField = (event) => {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -74,23 +76,43 @@ export default function StudentDataPage({
     }
   };
 
-  const handleDeleteStudent = async (student) => {
-    const confirmed = window.confirm(
-      `Hapus data siswa ${student.name} (NIS ${student.nis})? Tindakan ini tidak dapat dibatalkan.`,
-    );
-    if (!confirmed) return;
-
+  const handleDeleteStudent = (student) => {
     setMessage('');
     setError('');
+    setDeleteConfirmation({ type: 'student', student });
+  };
+
+  const handleDeleteAllStudents = () => {
+    setMessage('');
+    setError('');
+    setDeleteConfirmation({ type: 'all' });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation) return;
     setIsSubmitting(true);
     try {
-      await onDeleteStudent(student.id);
-      if (editingStudentId === student.id) cancelEditing();
-      setMessage(`Data ${student.name} berhasil dihapus.`);
+      if (deleteConfirmation.type === 'all') {
+        await onDeleteAllStudents();
+        setStudentSearch('');
+        cancelEditing();
+        setMessage('Semua data siswa berhasil dihapus. Daftar baru dapat ditambahkan untuk tahun ajaran berikutnya.');
+      } else {
+        await onDeleteStudent(deleteConfirmation.student.id);
+        if (editingStudentId === deleteConfirmation.student.id) cancelEditing();
+        setMessage(`Data ${deleteConfirmation.student.name} berhasil dihapus.`);
+      }
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : 'Gagal menghapus data siswa.');
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : deleteConfirmation.type === 'all'
+            ? 'Gagal menghapus semua data siswa.'
+            : 'Gagal menghapus data siswa.',
+      );
     } finally {
       setIsSubmitting(false);
+      setDeleteConfirmation(null);
     }
   };
 
@@ -222,19 +244,69 @@ export default function StudentDataPage({
             disabled={isSubmitting || isLoading}
             className="sr-only"
           />
-          <p className="mt-3 text-xs text-slate-400">Contoh baris: 1029386, Rina Putri, XII RPL 1, SMK Negeri 1</p>
+          <p className="mt-3 text-xs text-slate-400">Contoh baris: 1029386, Rina Putri, 12 SMA REG A, SMA Negeri 1 Jakarta</p>
         </div>
       </div>
 
       {message && <p role="status" className="mt-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{message}</p>}
       {error && <p role="alert" className="mt-3 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>}
 
+      {deleteConfirmation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-confirmation-title"
+            aria-describedby="delete-confirmation-description"
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+          >
+            <h3 id="delete-confirmation-title" className="text-lg font-bold text-slate-900">
+              Konfirmasi penghapusan
+            </h3>
+            <p id="delete-confirmation-description" className="mt-3 text-sm leading-6 text-slate-600">
+              {deleteConfirmation.type === 'all'
+                ? `Anda akan menghapus semua ${students.length} data siswa dari Data base. Daftar ini digunakan bersama dan akan terhapus untuk semua pengguna.`
+                : `Anda akan menghapus data ${deleteConfirmation.student.name} (NIS ${deleteConfirmation.student.nis}) dari Data base.`}
+              {' '}Tindakan ini tidak dapat dibatalkan. Lanjutkan?
+            </p>
+            <div className="mt-6 flex flex-col-reverse justify-end gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmation(null)}
+                disabled={isSubmitting}
+                className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 disabled:opacity-60"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={isSubmitting}
+                className="rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 disabled:opacity-60"
+              >
+                {isSubmitting ? 'Menghapus...' : 'Lanjutkan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mt-8">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-bold text-slate-800">Daftar Siswa</h3>
-          <span className="text-sm text-slate-500">
-            {searchQuery ? `${filteredStudents.length} dari ${students.length} siswa` : `${students.length} siswa`}
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm text-slate-500">
+              {searchQuery ? `${filteredStudents.length} dari ${students.length} siswa` : `${students.length} siswa`}
+            </span>
+            <button
+              type="button"
+              onClick={handleDeleteAllStudents}
+              disabled={isSubmitting || isLoading || students.length === 0}
+              className="rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSubmitting ? 'Menghapus...' : 'Hapus Semua'}
+            </button>
+          </div>
         </div>
         <div className="mb-4">
           <label htmlFor="student-search" className="sr-only">Cari siswa</label>

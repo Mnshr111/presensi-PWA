@@ -1,13 +1,13 @@
 import { Home, Users, CalendarDays, BarChart3, UserCog, GraduationCap } from 'lucide-react';
 
-export default function Sidebar({ currentPage, setCurrentPage }) {
+export default function Sidebar({ currentPage, setCurrentPage, isAdmin }) {
   const menuItems = [
     { key: 'home', label: 'Dashboard', icon: Home },
     { key: 'students', label: 'Data Siswa', icon: Users },
     { key: 'agenda', label: 'Agenda Kelas', icon: CalendarDays },
     { key: 'detail', label: 'Rekap & Laporan', icon: BarChart3 },
     { key: 'login', label: 'Pengaturan Akun', icon: UserCog },
-  ];
+  ].filter((item) => isAdmin || item.key !== 'students');
 
   return (
     <aside className="hidden lg:flex flex-col w-72 bg-white p-6 text-slate-800 justify-between shadow-2xl h-full border-r border-slate-200">

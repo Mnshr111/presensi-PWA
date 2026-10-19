@@ -38,6 +38,8 @@ export default function App() {
   const [studentsError, setStudentsError] = useState('');
   const [studentsRefreshToken, setStudentsRefreshToken] = useState(0);
   const userId = session?.user.id;
+  const isAdmin = session?.user.app_metadata?.role === 'admin' && session.user.is_anonymous !== true;
+  const activePage = !isAdmin && currentPage === 'students' ? 'home' : currentPage;
   const studentsLoadKey = userId ? `${userId}:${studentsRefreshToken}` : '';
   const studentsLoading = Boolean(studentsLoadKey && loadedStudentsKey !== studentsLoadKey);
 
@@ -92,6 +94,7 @@ export default function App() {
   }, [userId, studentsRefreshToken]);
 
   const addStudent = async (student) => {
+    if (!isAdmin) throw new Error('Akses admin diperlukan untuk mengelola data siswa.');
     if (siswaList.some((item) => item.nis === student.nis)) return false;
 
     const { data, error } = await supabase
@@ -115,6 +118,7 @@ export default function App() {
   };
 
   const updateStudent = async (studentId, student) => {
+    if (!isAdmin) throw new Error('Akses admin diperlukan untuk mengelola data siswa.');
     if (siswaList.some((item) => item.id !== studentId && item.nis === student.nis)) {
       return false;
     }
@@ -143,6 +147,7 @@ export default function App() {
   };
 
   const deleteStudent = async (studentId) => {
+    if (!isAdmin) throw new Error('Akses admin diperlukan untuk mengelola data siswa.');
     const { data, error } = await supabase
       .from('students')
       .delete()
@@ -156,7 +161,19 @@ export default function App() {
     setSiswaList((previous) => previous.filter((item) => item.id !== studentId));
   };
 
+  const deleteAllStudents = async () => {
+    if (!isAdmin) throw new Error('Akses admin diperlukan untuk mengelola data siswa.');
+    const { error } = await supabase
+      .from('students')
+      .delete()
+      .not('id', 'is', null);
+
+    if (error) throw new Error(error.message);
+    setSiswaList([]);
+  };
+
   const importStudents = async (students) => {
+    if (!isAdmin) throw new Error('Akses admin diperlukan untuk mengelola data siswa.');
     const knownNis = new Set(siswaList.map((student) => student.nis));
     const duplicateNis = [];
     const newStudents = students.filter((student) => {
@@ -190,6 +207,11 @@ export default function App() {
 
   const signIn = async (email, password) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+  };
+
+  const signInAnonymously = async () => {
+    const { error } = await supabase.auth.signInAnonymously();
     if (error) throw new Error(error.message);
   };
 
@@ -254,7 +276,7 @@ export default function App() {
   } else if (authError) {
     content = <p role="alert" className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{authError}</p>;
   } else if (!session) {
-    content = <LoginPage onSignIn={signIn} />;
+    content = <LoginPage onSignIn={signIn} onAnonymousSignIn={signInAnonymously} />;
   } else {
     content = (
       <>
@@ -266,10 +288,10 @@ export default function App() {
             </button>
           </div>
         )}
-        {currentPage === 'home' && studentsLoading && (
+        {activePage === 'home' && studentsLoading && (
           <p role="status" className="py-8 text-center text-sm text-slate-500">Memuat dashboard dari Supabase...</p>
         )}
-        {currentPage === 'home' && !studentsLoading && (
+        {activePage === 'home' && !studentsLoading && (
           <DashboardPage
             key={userId}
             userId={userId}
@@ -278,23 +300,30 @@ export default function App() {
             onSaveMeeting={saveMeeting}
           />
         )}
-        {currentPage === 'detail' && (
+        {activePage === 'detail' && (
           <DetailPage students={siswaList} onLoadReport={loadMonthlyReport} />
         )}
-        {currentPage === 'agenda' && (
+        {activePage === 'agenda' && (
           <ClassAgendaPage userId={userId} students={siswaList} onLoadAgenda={loadClassAgenda} />
         )}
-        {currentPage === 'students' && (
+        {activePage === 'students' && isAdmin && (
           <StudentDataPage
             students={siswaList}
             isLoading={studentsLoading}
             onAddStudent={addStudent}
             onUpdateStudent={updateStudent}
             onDeleteStudent={deleteStudent}
+            onDeleteAllStudents={deleteAllStudents}
             onImportStudents={importStudents}
           />
         )}
-        {currentPage === 'login' && <LoginPage user={session.user} onSignOut={signOut} />}
+        {activePage === 'login' && (
+          <LoginPage
+            user={session.user}
+            isAnonymous={session.user.is_anonymous === true}
+            onSignOut={signOut}
+          />
+        )}
       </>
     );
   }
@@ -302,7 +331,7 @@ export default function App() {
   return (
     <div className="w-screen h-screen flex p-0 m-0 bg-gradient-to-br from-[#eaf3f9] via-[#e1eef6] to-[#d6e8f3] overflow-hidden">
       <div className="w-full h-full bg-white/35 backdrop-blur-2xl flex flex-col lg:flex-row shadow-none border-none">
-        {session && <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />}
+        {session && <Sidebar currentPage={activePage} setCurrentPage={setCurrentPage} isAdmin={isAdmin} />}
 
         <main className="flex-1 flex flex-col h-full overflow-hidden relative">
           <header className="lg:hidden bg-gradient-to-r from-cyan-100 to-sky-100 p-5 text-slate-800 shadow-sm flex justify-between items-center border-b border-white/70">
@@ -321,7 +350,7 @@ export default function App() {
             {content}
           </div>
 
-          {session && <MobileNav currentPage={currentPage} setCurrentPage={setCurrentPage} />}
+          {session && <MobileNav currentPage={activePage} setCurrentPage={setCurrentPage} isAdmin={isAdmin} />}
         </main>
       </div>
     </div>

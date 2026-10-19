@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function LoginPage({ user, onSignIn, onSignOut }) {
+export default function LoginPage({ user, isAnonymous = false, onSignIn, onSignOut, onAnonymousSignIn }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -41,21 +41,25 @@ export default function LoginPage({ user, onSignIn, onSignOut }) {
         {user ? (
           <>
             <h2 className="text-xl font-bold text-slate-800 text-center mb-1">Pengaturan Akun</h2>
-            <p className="text-xs text-slate-500 text-center mb-6">Masuk sebagai {user.email}</p>
+            <p className="text-xs text-slate-500 text-center mb-6">
+              {isAnonymous ? 'Masuk sebagai tentor tanpa akun.' : `Masuk sebagai ${user.email || 'pengguna'}`}
+            </p>
             <button
               type="button"
               onClick={handleSignOut}
               disabled={isSubmitting}
               className="w-full py-3.5 rounded-xl bg-black text-white font-bold text-sm shadow-lg shadow-slate-900/20 transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-60"
             >
-              {isSubmitting ? 'Memproses...' : 'Keluar'}
+              {isSubmitting ? 'Memproses...' : isAnonymous ? 'Keluar dari sesi tentor' : 'Keluar'}
             </button>
             {error && <p role="alert" className="mt-4 text-sm text-rose-700">{error}</p>}
           </>
         ) : (
           <>
             <h2 className="text-xl font-bold text-slate-800 text-center mb-1">Masuk</h2>
-            <p className="text-xs text-slate-500 text-center mb-6">Gunakan email akun yang terdaftar di Supabase.</p>
+            <p className="text-xs text-slate-500 text-center mb-6">
+              Admin masuk dengan email. Tentor dapat melanjutkan tanpa akun dengan akses terbatas.
+            </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -82,7 +86,6 @@ export default function LoginPage({ user, onSignIn, onSignOut }) {
                   className="w-full py-3 px-4 rounded-xl bg-white border border-sky-100 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300"
                 />
               </div>
-              {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -91,6 +94,30 @@ export default function LoginPage({ user, onSignIn, onSignOut }) {
                 {isSubmitting ? 'Memproses...' : 'Masuk'}
               </button>
             </form>
+            <div className="my-5 flex items-center gap-3 text-xs text-slate-400">
+              <span className="h-px flex-1 bg-slate-200" />
+              atau
+              <span className="h-px flex-1 bg-slate-200" />
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                setError('');
+                setIsSubmitting(true);
+                try {
+                  await onAnonymousSignIn();
+                } catch (signInError) {
+                  setError(signInError instanceof Error ? signInError.message : 'Gagal masuk sebagai tentor.');
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
+              disabled={isSubmitting}
+              className="w-full rounded-xl border border-slate-200 bg-white py-3.5 text-sm font-bold text-slate-800 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-60"
+            >
+              {isSubmitting ? 'Memproses...' : 'Masuk sebagai Tentor (Tanpa Akun)'}
+            </button>
+            {error && <p role="alert" className="mt-4 text-sm text-rose-700">{error}</p>}
           </>
         )}
       </div>

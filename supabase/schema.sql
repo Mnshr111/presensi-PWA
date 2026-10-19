@@ -23,15 +23,15 @@ create policy "Authenticated users can read students"
 drop policy if exists "Authenticated users can add students" on public.students;
 create policy "Authenticated users can add students"
   on public.students for insert to authenticated
-  with check (auth.uid() is not null);
+  with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
 drop policy if exists "Authenticated users can update students" on public.students;
 create policy "Authenticated users can update students"
   on public.students for update to authenticated
-  using (auth.uid() is not null)
-  with check (auth.uid() is not null);
+  using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
+  with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
 drop policy if exists "Authenticated users can delete students" on public.students;
 create policy "Authenticated users can delete students"
   on public.students for delete to authenticated
-  using (auth.uid() is not null);
+  using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');

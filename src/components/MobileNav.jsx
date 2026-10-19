@@ -1,13 +1,13 @@
 import { Home, Users, CalendarDays, BarChart3, UserCog } from 'lucide-react';
 
-export default function MobileNav({ currentPage, setCurrentPage }) {
+export default function MobileNav({ currentPage, setCurrentPage, isAdmin }) {
   const menuItems = [
     { key: 'home', icon: Home, label: 'Dashboard' },
     { key: 'students', icon: Users, label: 'Siswa' },
     { key: 'agenda', icon: CalendarDays, label: 'Agenda' },
     { key: 'detail', icon: BarChart3, label: 'Laporan' },
     { key: 'login', icon: UserCog, label: 'Akun' },
-  ];
+  ].filter((item) => isAdmin || item.key !== 'students');
 
   return (
     <nav 

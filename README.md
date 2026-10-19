@@ -4,11 +4,14 @@
 
 1. Install project dependencies with `npm install`.
 2. Copy `.env.example` to `.env.local`, then set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from the Supabase project's API settings.
-3. In the Supabase SQL Editor, run [`supabase/schema.sql`](./supabase/schema.sql) to create the students table and authenticated-only row-level security policies.
-4. Create teacher/admin accounts in the Supabase dashboard under **Authentication → Users**. The app uses email and password sign-in; public sign-up is not exposed.
-5. Restart the Vite development server after changing environment variables.
+3. In the Supabase SQL Editor, run [`supabase/schema.sql`](./supabase/schema.sql) to create the students table and role-aware row-level security policies. Run it again for an existing installation to apply the admin-only write policies.
+4. Create admin accounts under **Authentication → Users**. In each admin user's `app_metadata`, set `role` to `admin` (do not use editable `user_metadata`), then have the admin sign out and back in so the new role is included in its session. Every other account has tentor access.
+5. Under **Authentication → Providers → Anonymous Sign-Ins**, enable anonymous sign-ins. Tentors can then enter without email/password; Supabase creates a persistent anonymous session on that browser/device. Consider enabling CAPTCHA/rate limits to reduce automated anonymous sign-ins.
+6. Restart the Vite development server after changing environment variables.
 
-Only the Supabase publishable/anon key belongs in the frontend environment. Never put a `service_role` key in `.env.local` or client-side code. Student reads and writes require a signed-in Supabase user.
+Only the Supabase publishable/anon key belongs in the frontend environment. Never put a `service_role` key in `.env.local` or client-side code. Signed-in and anonymous tentor sessions can read the shared student roster for attendance and agenda. Only users with the admin role in `app_metadata` can add, edit, or delete student records; the database enforces this through row-level security.
+
+Admins can use every menu, including **Data Siswa**. Tentors (including anonymous sessions) can use **Dashboard**, **Agenda Kelas**, and **Rekap & Laporan** to record attendance, view agendas, and export attendance reports. Anonymous access is a Supabase anonymous session rather than an email account, so it remains on that browser/device until the tentor signs out or clears site storage.
 
 ## Google Spreadsheet attendance setup
 
