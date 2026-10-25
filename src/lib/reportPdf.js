@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-export function createReportPdf(reportType, month, monthLabel, className, rows) {
+export function createReportPdf(reportType, monthLabel, className, rows) {
   const pdf = new jsPDF({ orientation: 'landscape', format: 'a4' });
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
@@ -169,7 +169,7 @@ export function createReportPdf(reportType, month, monthLabel, className, rows) 
       pdf.setFontSize(8);
       pdf.setTextColor(113, 128, 150);
       pdf.text(
-        `Laporan Presensi | ${monthLabel || month} — Halaman ${data.pageNumber} dari ${pageCount}`,
+        `Laporan Presensi | ${monthLabel} — Halaman ${data.pageNumber} dari ${pageCount}`,
         14,
         pageHeight - 6,
       );

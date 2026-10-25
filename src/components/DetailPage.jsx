@@ -91,8 +91,7 @@ export default function DetailPage({ students = [], onLoadReport }) {
   const pdfToolsPromise = useRef(null);
   const pdfToolsError = useRef(null);
 
-  const [reportType, setReportType] = useState('monthly'); // 'daily' | 'monthly' | 'student'
-  const [month, setMonth] = useState(currentMonth);
+  const [reportType, setReportType] = useState('daily'); // 'daily' | 'student'
   const [date, setDate] = useState(currentDate);
   const [startMonth, setStartMonth] = useState(currentMonth);
   const [endMonth, setEndMonth] = useState(currentMonth);
@@ -127,14 +126,11 @@ export default function DetailPage({ students = [], onLoadReport }) {
   );
 
   const monthLabel = useMemo(() => {
-    if (reportType === 'monthly') {
-      return formatMonthLabel(month);
-    }
     if (reportType === 'student') {
       return `${formatMonthLabel(startMonth)} s.d. ${formatMonthLabel(endMonth)}`;
     }
     return date;
-  }, [reportType, month, startMonth, endMonth, date]);
+  }, [reportType, startMonth, endMonth, date]);
 
   const generateReport = async (event) => {
     event.preventDefault();
@@ -150,8 +146,6 @@ export default function DetailPage({ students = [], onLoadReport }) {
 
       if (reportType === 'daily') {
         payload.date = date;
-      } else if (reportType === 'monthly') {
-        payload.month = month;
       } else if (reportType === 'student') {
         if (!selectedNis) {
           throw new Error('Silakan pilih siswa terlebih dahulu.');
@@ -186,8 +180,8 @@ export default function DetailPage({ students = [], onLoadReport }) {
           ? pdfToolsError.current.message
           : 'Fitur pembuatan PDF gagal dimuat. Muat ulang halaman lalu coba lagi.');
       }
-      const blob = pdfTools.createReportPdf(reportType, month, monthLabel, className, report);
-      const filename = `rekap-${reportType}-${month || Date.now()}.pdf`;
+      const blob = pdfTools.createReportPdf(reportType, monthLabel, className, report);
+      const filename = `rekap-${reportType}-${Date.now()}.pdf`;
       const file = new File([blob], filename, { type: 'application/pdf' });
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
@@ -205,12 +199,58 @@ export default function DetailPage({ students = [], onLoadReport }) {
     }
   };
 
+  const exportDailyPdfsByClass = async () => {
+    if (!report || report.length === 0) return;
+    setError('');
+    setExportMessage('');
+    setIsExportingPdf(true);
+
+    try {
+      const { zipSync } = await import('fflate');
+      const pdfTools = await pdfToolsPromise.current;
+      if (!pdfTools) {
+        throw new Error(pdfToolsError.current instanceof Error
+          ? pdfToolsError.current.message
+          : 'Fitur pembuatan PDF gagal dimuat. Muat ulang halaman lalu coba lagi.');
+      }
+
+      const reportsByClass = report.reduce((groups, row) => {
+        const classLabel = row.className?.trim() || 'Tanpa Kelas';
+        const classRows = groups.get(classLabel) || [];
+        classRows.push(row);
+        groups.set(classLabel, classRows);
+        return groups;
+      }, new Map());
+
+      const files = {};
+      const folderName = `rekap-harian-${date}`;
+
+      for (const [index, [classLabel, classRows]] of [...reportsByClass].entries()) {
+        const classFileName = classLabel
+          .toLocaleLowerCase('id-ID')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '') || 'tanpa-kelas';
+        const blob = pdfTools.createReportPdf('daily', monthLabel, classLabel, classRows);
+        files[`${folderName}/${classFileName}-${index + 1}.pdf`] = new Uint8Array(await blob.arrayBuffer());
+      }
+
+      const zipData = zipSync(files);
+      const zipBlob = new Blob([zipData], { type: 'application/zip' });
+      downloadPdf(zipBlob, `${folderName}.zip`);
+      setExportMessage(`1 file ZIP berisi ${reportsByClass.size} PDF rekap harian per kelas siap diunduh.`);
+    } catch (exportError) {
+      setError(exportError instanceof Error ? exportError.message : 'Gagal membuat PDF rekap per kelas.');
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
   return (
     <section>
       <div className="mb-8 border-b border-slate-200/60 pb-4">
         <h2 className="text-2xl font-bold text-slate-800">Rekap Presensi & Rapor</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Pilih rekap harian, bulanan, atau rekap per siswa berdasarkan rentang bulan.
+          Pilih rekap harian atau rekap per siswa berdasarkan rentang bulan.
         </p>
       </div>
 
@@ -218,10 +258,10 @@ export default function DetailPage({ students = [], onLoadReport }) {
       <div className="mb-4 flex flex-wrap gap-2 border-b border-slate-200 pb-3">
         <button
           type="button"
-          onClick={() => { setReportType('monthly'); setReport(null); }}
-          className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${reportType === 'monthly' ? 'bg-cyan-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+          onClick={() => { setReportType('daily'); setReport(null); }}
+          className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${reportType === 'daily' ? 'bg-cyan-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
         >
-           Rekap Harian
+          Rekap Harian
         </button>
         <button
           type="button"
@@ -242,20 +282,6 @@ export default function DetailPage({ students = [], onLoadReport }) {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              required
-              className="w-full rounded-xl border border-sky-100 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300"
-            />
-          </div>
-        )}
-
-        {reportType === 'monthly' && (
-          <div className="w-full sm:w-56">
-            <label htmlFor="report-month" className="mb-1 block text-xs font-semibold text-slate-600">Bulan</label>
-            <input
-              id="report-month"
-              type="month"
-              value={month}
-              onChange={(e) => setMonth(e.target.value)}
               required
               className="w-full rounded-xl border border-sky-100 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300"
             />
@@ -338,7 +364,6 @@ export default function DetailPage({ students = [], onLoadReport }) {
             <div>
               <h3 className="text-xl font-bold text-slate-800">
                 {reportType === 'daily' && `Rekap Harian Tanggal ${monthLabel}`}
-                {reportType === 'monthly' && `Rapor Bulan ${monthLabel}`}
                 {reportType === 'student' && `Rekap Perkembangan Siswa (${monthLabel})`}
               </h3>
               <p className="mt-1 text-sm text-slate-500">
@@ -355,6 +380,16 @@ export default function DetailPage({ students = [], onLoadReport }) {
               >
                 {isExportingPdf ? 'Membuat PDF...' : 'PDF / Simpan'}
               </button>
+              {reportType === 'daily' && !className && (
+                <button
+                  type="button"
+                  onClick={exportDailyPdfsByClass}
+                  disabled={report.length === 0 || isExportingPdf}
+                  className="rounded-xl bg-cyan-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-cyan-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-50"
+                >
+                  {isExportingPdf ? 'Membuat ZIP...' : 'Unduh ZIP per Kelas'}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => downloadReportCsv(reportType, monthLabel, report)}
