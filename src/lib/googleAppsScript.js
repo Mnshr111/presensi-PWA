@@ -89,7 +89,12 @@ export function loadMonthlyReportFromAppsScript(endpoint, filters, credentials) 
   return postAppsScriptRequest(endpoint, {
     ...authFields(credentials),
     action: 'monthlyReport',
+    reportType: filters.type,
     month: filters.month,
+    date: filters.date,
+    nis: filters.nis,
+    startMonth: filters.startMonth,
+    endMonth: filters.endMonth,
     className: filters.className,
   });
 }

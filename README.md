@@ -18,7 +18,7 @@ Admins can use every menu, including **Data Siswa**. Tentors (including anonymou
 ## Google Spreadsheet attendance setup
 
 1. Open the target Google Spreadsheet and choose **Extensions → Apps Script**.
-2. Replace the Apps Script editor contents with [`apps-script/Code.gs`](./apps-script/Code.gs) and save. It defines both `doGet` and `doPost`, validates the Supabase session, saves student rows to `Absensi`, saves one meeting summary to `Rekap Pertemuan`, and serves monthly reports.
+2. Replace the Apps Script editor contents with [`apps-script/Code.gs`](./apps-script/Code.gs) and save. It defines both `doGet` and `doPost`, validates the Supabase session, saves student rows to `Absensi`, saves one meeting summary to `Rekap Pertemuan`, and serves daily, monthly, and per-student month-range reports.
 3. Choose **Deploy → New deployment → Web app**, execute as your account, and allow access to anyone. The endpoint verifies the signed-in Supabase session before writing; do not remove that verification.
 4. Copy the deployed `/exec` URL into `VITE_GOOGLE_APPS_SCRIPT_URL` in `.env.local`, then restart the Vite server.
 5. After changing `Code.gs`, choose **Deploy → Manage deployments → Edit → New version → Deploy**. The existing `/exec` URL remains usable.
@@ -27,7 +27,7 @@ The dashboard appends one row per student to `Absensi`, including meeting inform
 
 The app sends the Supabase project URL, publishable/anon key, and current user's access token with each request. Apps Script validates the token against Supabase before reading or writing. Never put a `service_role` key in the frontend or Apps Script. The app's attendance form already sends all meeting fields and student attendance rows; no frontend configuration change is needed.
 
-The **Rekap & Laporan** page reads the selected month and class from `Absensi`, summarizes attendance and average grades (overall and by subject), and supports CSV download and printing.
+The **Rekap & Laporan** page reads daily attendance, monthly summaries, and per-student reports over a selected month range from `Absensi`. Summary reports include attendance counts and average grades (overall and by subject), and support CSV download, PDF export, and printing. Deploy the current Apps Script version after changing `Code.gs`; older deployments only accept the single-month report filter.
 
 The **Agenda Kelas** page uses class names from the student roster. It caches each account's class agenda in browser storage, displays cached records immediately, and asks the authenticated `monthlyReport` Apps Script action only for sheet rows added after its saved row marker. It checks for new rows in the background every five minutes while the page is open, and checks again when returning to the tab; background checks do not block the agenda display. It resynchronizes from the beginning if the summary sheet has been reset. The subjects shown are derived from that class's saved meeting records. Deploy the current `apps-script/Code.gs` for this incremental agenda action to work. The cache is local to the browser/device.
 

@@ -65,10 +65,20 @@ function doPost(event) {
           })
         );
       }
-      const report = getMonthlyReport({
+      const filters = {
+        reportType: String(parameters.reportType || 'monthly'),
+        date: parameters.date,
         month: parameters.month,
+        nis: parameters.nis,
+        startMonth: parameters.startMonth,
+        endMonth: parameters.endMonth,
         className: parameters.className,
-      });
+      };
+      const report = filters.reportType === 'daily'
+        ? getDailyReport(filters)
+        : filters.reportType === 'student'
+          ? getStudentRangeReport(filters)
+          : getMonthlyReport(filters);
       return createResponse(requestId, true, '', report);
     }
     throw new Error('Aksi tidak dikenal: ' + action);
@@ -256,11 +266,28 @@ function normalizeHeader_(value) {
   return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
-function getMonthlyReport(filters) {
-  const month = String(filters.month || '').trim();
+function isValidIsoDate_(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(value + 'T00:00:00Z');
+  return !isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function findReportColumns_(headers, requiredHeaders) {
+  const column = {};
+  requiredHeaders.forEach(function (header) {
+    column[header] = headers.indexOf(header);
+    if (column[header] < 0) {
+      throw new Error('Kolom "' + header + '" tidak ditemukan pada sheet Absensi.');
+    }
+  });
+  return column;
+}
+
+function getDailyReport(filters) {
+  const dateFilter = String(filters.date || '').trim();
   const className = String(filters.className || '').trim();
-  if (!/^\d{4}-\d{2}$/.test(month)) {
-    throw new Error('Format bulan rekap tidak valid.');
+  if (!isValidIsoDate_(dateFilter)) {
+    throw new Error('Format tanggal rekap harian tidak valid.');
   }
 
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
@@ -271,9 +298,90 @@ function getMonthlyReport(filters) {
   if (!sheet || sheet.getLastRow() < 2) return [];
 
   const values = sheet.getDataRange().getValues();
+  const timeZone = spreadsheet.getSpreadsheetTimeZone();
   const headers = values[0].map(function (header) { return String(header).trim(); });
-  const column = {};
-  [
+  const column = findReportColumns_(headers, [
+    'Tanggal',
+    'Kelas Pertemuan',
+    'NIS',
+    'Nama Siswa',
+    'Kelas Siswa',
+    'Kehadiran',
+    'Catatan',
+  ]);
+
+  return values.slice(1)
+    .filter(function (row) {
+      const date = sheetDate_(row[column.Tanggal], timeZone);
+      const meetingClass = String(row[column['Kelas Pertemuan']] || '').trim();
+      return date === dateFilter && (!className || meetingClass === className);
+    })
+    .map(function (row) {
+      return {
+        date: sheetDate_(row[column.Tanggal], timeZone),
+        nis: String(row[column.NIS] || '').trim(),
+        name: String(row[column['Nama Siswa']] || '').trim(),
+        className: String(row[column['Kelas Siswa']] || '').trim(),
+        status: String(row[column.Kehadiran] || '').trim(),
+        note: String(row[column.Catatan] || '').trim(),
+      };
+    })
+    .filter(function (record) { return record.nis && record.name; })
+    .sort(function (left, right) {
+      return left.className.localeCompare(right.className) || left.name.localeCompare(right.name);
+    });
+}
+
+function getStudentRangeReport(filters) {
+  const startMonth = String(filters.startMonth || '').trim();
+  const endMonth = String(filters.endMonth || '').trim();
+  const nis = String(filters.nis || '').trim();
+  if (
+    !nis ||
+    !/^\d{4}-(0[1-9]|1[0-2])$/.test(startMonth) ||
+    !/^\d{4}-(0[1-9]|1[0-2])$/.test(endMonth) ||
+    startMonth > endMonth
+  ) {
+    throw new Error('Format rentang bulan atau NIS siswa tidak valid.');
+  }
+
+  const lastDay = new Date(Number(endMonth.slice(0, 4)), Number(endMonth.slice(5, 7)), 0).getDate();
+  return getMonthlyReport({
+    dateFrom: startMonth + '-01',
+    dateTo: endMonth + '-' + String(lastDay).padStart(2, '0'),
+    nis: nis,
+    className: '',
+    includeMonth: true,
+  });
+}
+
+function getMonthlyReport(filters) {
+  const month = String(filters.month || '').trim();
+  const dateFrom = String(filters.dateFrom || '').trim();
+  const dateTo = String(filters.dateTo || '').trim();
+  const nisFilter = String(filters.nis || '').trim();
+  const className = String(filters.className || '').trim();
+  const isDateRange = Boolean(dateFrom || dateTo);
+  if (
+    (isDateRange && (!isValidIsoDate_(dateFrom) || !isValidIsoDate_(dateTo) || dateFrom > dateTo)) ||
+    (!isDateRange && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month))
+  ) {
+    throw new Error(isDateRange
+      ? 'Format rentang tanggal rekap tidak valid.'
+      : 'Format bulan rekap tidak valid.');
+  }
+
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  if (!spreadsheet) {
+    throw new Error('Apps Script harus terhubung ke Google Spreadsheet.');
+  }
+  const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+
+  const values = sheet.getDataRange().getValues();
+  const timeZone = spreadsheet.getSpreadsheetTimeZone();
+  const headers = values[0].map(function (header) { return String(header).trim(); });
+  const column = findReportColumns_(headers, [
     'Tanggal',
     'Mata Pelajaran',
     'Kelas Pertemuan',
@@ -282,29 +390,31 @@ function getMonthlyReport(filters) {
     'Kelas Siswa',
     'Kehadiran',
     'Nilai',
-  ].forEach(function (header) {
-    column[header] = headers.indexOf(header);
-    if (column[header] < 0) {
-      throw new Error('Kolom "' + header + '" tidak ditemukan pada sheet Absensi.');
-    }
-  });
+  ]);
 
   const students = new Map();
   values.slice(1).forEach(function (row) {
-    const date = sheetDate_(row[column['Tanggal']]);
+    const date = sheetDate_(row[column['Tanggal']], timeZone);
     const meetingClass = String(row[column['Kelas Pertemuan']] || '').trim();
     const studentClass = String(row[column['Kelas Siswa']] || '').trim();
-    if (!date || date.slice(0, 7) !== month || (className && meetingClass !== className)) return;
+    if (
+      !date ||
+      (isDateRange ? date < dateFrom || date > dateTo : date.slice(0, 7) !== month) ||
+      (className && meetingClass !== className)
+    ) return;
 
     const nis = String(row[column.NIS] || '').trim();
+    if (nisFilter && nis !== nisFilter) return;
     const name = String(row[column['Nama Siswa']] || '').trim();
     if (!nis || !name) return;
-    const key = nis + '|' + studentClass;
+    const rowMonth = date.slice(0, 7);
+    const key = nis + '|' + studentClass + (filters.includeMonth ? '|' + rowMonth : '');
     if (!students.has(key)) {
       students.set(key, {
         nis: nis,
         name: name,
         className: studentClass,
+        month: rowMonth,
         sessions: 0,
         attendance: {
           Hadir: 0,
@@ -345,6 +455,7 @@ function getMonthlyReport(filters) {
         nis: student.nis,
         name: student.name,
         className: student.className,
+        month: filters.includeMonth ? student.month : undefined,
         sessions: student.sessions,
         attendance: student.attendance,
         averageGrade: student.gradeCount
@@ -361,7 +472,9 @@ function getMonthlyReport(filters) {
       };
     })
     .sort(function (left, right) {
-      return left.className.localeCompare(right.className) || left.name.localeCompare(right.name);
+      return left.className.localeCompare(right.className) ||
+        left.name.localeCompare(right.name) ||
+        String(left.month || '').localeCompare(String(right.month || ''));
     });
 }
 
@@ -405,12 +518,13 @@ function getClassAgenda(filters) {
   }
 
   const rows = sheet.getRange(sinceRow + 1, 1, lastRow - sinceRow, lastColumn).getValues();
+  const timeZone = spreadsheet.getSpreadsheetTimeZone();
   const meetings = [];
   rows.forEach(function (row, index) {
     const meetingClass = String(row[column['Kelas Pertemuan']] || '').trim();
     if (meetingClass !== className) return;
 
-    const date = sheetDate_(row[column.Tanggal]);
+    const date = sheetDate_(row[column.Tanggal], timeZone);
     meetings.push({
       id: String(sinceRow + 1 + index),
       rowNumber: sinceRow + 1 + index,
@@ -436,12 +550,20 @@ function getClassAgenda(filters) {
   return { records: records, lastRow: lastRow };
 }
 
-function sheetDate_(value) {
+function sheetDate_(value, timeZone) {
   if (value instanceof Date && !isNaN(value.getTime())) {
-    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    return Utilities.formatDate(value, timeZone || Session.getScriptTimeZone(), 'yyyy-MM-dd');
   }
   const text = String(value || '').trim();
-  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : '';
+  const isoDate = text.match(/^(\d{4}-\d{2}-\d{2})(?:$|T)/);
+  if (isoDate && isValidIsoDate_(isoDate[1])) return isoDate[1];
+
+  const localizedDate = text.match(/^(\d{1,2})[/. -](\d{1,2})[/. -](\d{4})$/);
+  if (!localizedDate) return '';
+  const day = localizedDate[1].padStart(2, '0');
+  const month = localizedDate[2].padStart(2, '0');
+  const date = localizedDate[3] + '-' + month + '-' + day;
+  return isValidIsoDate_(date) ? date : '';
 }
 
 function safeCellValue(value) {

@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-export function createReportPdf(month, monthLabel, className, rows) {
+export function createReportPdf(reportType, month, monthLabel, className, rows) {
   const pdf = new jsPDF({ orientation: 'landscape', format: 'a4' });
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
@@ -11,13 +11,6 @@ export function createReportPdf(month, monthLabel, className, rows) {
   const colorTextDark = [45, 55, 72];        // Warna teks gelap utama
   const colorTextMuted = [113, 128, 150];    // Teks sekunder/abu-abu
   const colorBorder = [232, 224, 212];       // Garis batas tabel pastel
-
-  // Hitung Status Penyelesaian Tugas (% siswa yang sudah ada nilai)
-  const totalStudents = rows.length;
-  const studentsWithGrade = rows.filter((s) => s.averageGrade !== null);
-  const completionRate = totalStudents > 0 
-    ? ((studentsWithGrade.length / totalStudents) * 100).toFixed(2) 
-    : '0.00';
 
   // Latar Belakang Halaman Penuh
   const applyBackground = () => {
@@ -32,25 +25,44 @@ export function createReportPdf(month, monthLabel, className, rows) {
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(20);
   pdf.setTextColor(colorTextDark[0], colorTextDark[1], colorTextDark[2]);
-  pdf.text('Task & Report Tracker', 14, 15);
+  pdf.text('Laporan Presensi Siswa', 14, 15);
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(9.5);
   pdf.setTextColor(colorTextMuted[0], colorTextMuted[1], colorTextMuted[2]);
-  pdf.text('Laporan Bulan, Rekap Kehadiran, & Nilai Siswa', 14, 21);
+  pdf.text(
+    reportType === 'daily'
+      ? 'Rekap kehadiran harian siswa'
+      : 'Rekap kehadiran dan nilai siswa',
+    14,
+    21,
+  );
 
-  // Badge Tahun Ajaran & Bulan
   pdf.setFillColor(221, 234, 254);
-  pdf.roundedRect(14, 25, 90, 6, 2, 2, 'F');
+  pdf.roundedRect(14, 25, 110, 6, 2, 2, 'F');
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(7.5);
   pdf.setTextColor(30, 64, 175);
-  pdf.text(`Tahun Ajaran 2026/2027  —  Bulan ${monthLabel.toUpperCase()}`, 17, 29);
+  pdf.text(`Periode ${monthLabel.toUpperCase()}`, 17, 29);
+  if (className) {
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    pdf.setTextColor(colorTextMuted[0], colorTextMuted[1], colorTextMuted[2]);
+    pdf.text(`Kelas ${className}`, 128, 29);
+  }
 
   autoTable(pdf, {
     startY: 34,
     margin: { left: 14, right: 14, top: 34, bottom: 15 }, // Batasan margin yang jelas
-    head: [[
+    head: [reportType === 'daily' ? [
+      'No.',
+      'Tanggal',
+      'NIS',
+      'Nama Siswa',
+      'Kelas',
+      'Kehadiran',
+      'Catatan',
+    ] : [
       'No.',
       'NIS',
       'Nama Siswa',
@@ -65,7 +77,15 @@ export function createReportPdf(month, monthLabel, className, rows) {
       'Rata-rata',
       'Nilai per Mapel',
     ]],
-    body: rows.map((student, index) => [
+    body: reportType === 'daily' ? rows.map((student, index) => [
+      index + 1,
+      student.date || '-',
+      student.nis || '-',
+      student.name || '-',
+      student.className || '-',
+      student.status || '-',
+      student.note || '-',
+    ]) : rows.map((student, index) => [
       index + 1,
       student.nis || '-',
       student.name || '-',
@@ -149,15 +169,11 @@ export function createReportPdf(month, monthLabel, className, rows) {
       pdf.setFontSize(8);
       pdf.setTextColor(113, 128, 150);
       pdf.text(
-        `♡ Assignment Tracker Report | ${month} — Halaman ${data.pageNumber} dari ${pageCount}`,
+        `Laporan Presensi | ${monthLabel || month} — Halaman ${data.pageNumber} dari ${pageCount}`,
         14,
         pageHeight - 6,
       );
-      pdf.text(
-        'Semangat Selalu ♡',
-        pageWidth - 35,
-        pageHeight - 6,
-      );
+      pdf.text('Presensi Siswa', pageWidth - 35, pageHeight - 6);
     },
   });
 
